@@ -199,12 +199,5 @@ Pull latest main
 → review and merge
 ```
 
-Do not wait until the end to combine all code. Integrate step by step.
-
-## Current Backlog
-
-1. LangGraph image handling.
-2. Skills + dynamic loading.
-3. Context engineering.
 
 Scenario 2 will add more work later for script maintenance, UI changes, repair, and self-healing.
