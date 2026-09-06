@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f8;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 18px;
+      color: #1a1a1a;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 18px;
+      background: #4a7dfc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3a6ae0;
+    }
+
+    ul#results {
+      list-style: none;
+    }
+
+    ul#results li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      color: #333;
+    }
+
+    ul#results li:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Search items</h1>
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search by keyword">
+      <button id="search-btn">Search</button>
+    </div>
+    <ul id="results">
+      <li>Wireless Mouse</li>
+      <li>Mechanical Keyboard</li>
+      <li>USB-C Hub</li>
+      <li>Laptop Stand</li>
+      <li>Webcam HD</li>
+    </ul>
+  </div>
+
+  <script>
+    const input = document.getElementById("search-input");
+    const btn = document.getElementById("search-btn");
+    const results = document.getElementById("results");
+    const items = ["Wireless Mouse", "Mechanical Keyboard", "USB-C Hub", "Laptop Stand", "Webcam HD"];
+
+    btn.addEventListener("click", () => {
+      const query = input.value.trim().toLowerCase();
+      const filtered = items.filter(item => item.toLowerCase().includes(query));
+      results.innerHTML = "";
+      filtered.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        results.appendChild(li);
+      });
+      if (filtered.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No results found";
+        results.appendChild(li);
+      }
+    });
+  </script>
+
+</body>
+</html>

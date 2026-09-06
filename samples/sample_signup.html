@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Account</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #fff;
+      width: 360px;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 4px;
+      color: #1a1a1a;
+    }
+
+    p.subtitle {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4a7dfc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4a7dfc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3a6ae0;
+    }
+
+    .secondary-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #4a7dfc;
+      text-decoration: none;
+    }
+
+    .secondary-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Create your account</h1>
+    <p class="subtitle">Sign up to get started</p>
+
+    <form id="signup-form">
+      <label for="name">Full name</label>
+      <input type="text" id="name" placeholder="Enter your name">
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password">
+
+      <button type="submit">Create Account</button>
+    </form>
+
+    <a href="search.html" class="secondary-link">Browse without an account &rarr;</a>
+  </div>
+
+</body>
+</html>

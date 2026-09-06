@@ -1,0 +1,43 @@
+{
+  "app_path": "http://127.0.0.1:5000/signup",
+  "pages": {
+    "http://127.0.0.1:5000/signup": [
+      {
+        "name": "case_1",
+        "verdict": "HANDLED",
+        "reason": "The application correctly displayed validation error messages for the invalid email input.",
+        "seen_at": "2026-09-03 14:18:41"
+      },
+      {
+        "name": "case_2",
+        "verdict": "BUG FOUND",
+        "reason": "No feedback is shown for invalid input, indicating that the application may not be handling the test case correctly.",
+        "seen_at": "2026-09-03 14:18:41"
+      },
+      {
+        "name": "case_3",
+        "verdict": "HANDLED",
+        "reason": "The password field has a validation error message indicating that the password must be at least 8 characters long.",
+        "seen_at": "2026-09-03 14:18:41"
+      },
+      {
+        "name": "case_4",
+        "verdict": "BUG FOUND",
+        "reason": "The email field is highlighted in blue, indicating that it is not valid or requires further input. This suggests that the application is not handling invalid input correctly.",
+        "seen_at": "2026-09-03 14:18:41"
+      },
+      {
+        "name": "case_5",
+        "verdict": "BUG FOUND",
+        "reason": "The password field is empty, but no validation error message is shown, indicating that the application may silently accept invalid input.",
+        "seen_at": "2026-09-03 14:18:41"
+      },
+      {
+        "name": "case_6",
+        "verdict": "BUG FOUND",
+        "reason": "The email textbox is empty, but there is no validation error message or feedback indicating that the email is required or invalid.",
+        "seen_at": "2026-09-03 14:18:41"
+      }
+    ]
+  }
+}

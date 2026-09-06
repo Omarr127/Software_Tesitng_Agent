@@ -1,0 +1,4 @@
+langgraph
+ollama
+Pillow
+google-genai
