@@ -1,0 +1,24 @@
+agent-browser open http://127.0.0.1:5000
+agent-browser mouse move 600 205
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser press Control+a
+agent-browser clipboard write "John Doe"
+agent-browser clipboard paste
+agent-browser mouse move 600 285
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser press Control+a
+agent-browser clipboard write "user@example.com"
+agent-browser clipboard paste
+agent-browser mouse move 600 365
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser press Control+a
+agent-browser clipboard write "Password123!"
+agent-browser clipboard paste
+agent-browser mouse move 470 430
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser snapshot
+agent-browser screenshot validation_screen.png

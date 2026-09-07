@@ -1,0 +1,31 @@
+{
+  "app_path": "http://127.0.0.1:5000",
+  "pages": {
+    "http://127.0.0.1:5000": [
+      {
+        "name": "case_1",
+        "verdict": "BUG FOUND",
+        "reason": "Form submission was blocked with a 'Please fill out this field' validation error, but this error message points to the empty Name field instead of validating the invalid email format.",
+        "seen_at": "2026-09-07 13:12:04"
+      },
+      {
+        "name": "case_2",
+        "verdict": "HANDLED",
+        "reason": "Form submission was blocked and a validation error message 'Please fill out this field.' appeared for the required fields.",
+        "seen_at": "2026-09-07 13:12:04"
+      },
+      {
+        "name": "case_3",
+        "verdict": "HANDLED",
+        "reason": "Form submission was blocked with a validation error message 'Please fill out this field' when trying to submit empty required fields.",
+        "seen_at": "2026-09-07 13:12:04"
+      },
+      {
+        "name": "case_4",
+        "verdict": "BUG FOUND",
+        "reason": "Entering whitespace into the required 'Name' field bypassed validation, while other empty fields triggered required field errors.",
+        "seen_at": "2026-09-07 13:12:04"
+      }
+    ]
+  }
+}

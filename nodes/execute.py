@@ -16,7 +16,8 @@ def execute_action(state: AgentState):
     - Store successful actions.
     - Preserve observed element information,
       including dynamic bounding boxes.
-    - Store Agent Browser CLI commands.
+    - Store the real Agent Browser CLI command sequence
+      used for each successful action.
     - Tag actions with case_id / page_url for explore mode.
     - Capture post-action page state for explore mode.
 
@@ -91,6 +92,13 @@ def execute_action(state: AgentState):
         False
     )
 
+    # Keep the exact command sequence returned by the
+    # browser tool. For click/fill this is now the real
+    # coordinate-based mouse/clipboard sequence.
+    command = result.get(
+        "command"
+    )
+
     # --------------------------------------------------
     # 4. Get previous executed actions
     # --------------------------------------------------
@@ -107,6 +115,25 @@ def execute_action(state: AgentState):
     if success:
 
         executed_action = action.copy()
+
+        # --------------------------------------------------
+        # Store the REAL command sequence that was executed.
+        #
+        # Example for fill:
+        #
+        # agent-browser mouse move 631 218
+        # agent-browser mouse down left
+        # agent-browser mouse up left
+        # agent-browser press Control+a
+        # agent-browser clipboard write "Aya"
+        # agent-browser clipboard paste
+        #
+        # The element ref may remain in target internally,
+        # but generate.py can now output this command instead
+        # of rebuilding a static ref-based command.
+        # --------------------------------------------------
+
+        executed_action["command"] = command
 
         # --------------------------------------------------
         # Tag the executed action with which case/page it
@@ -131,19 +158,9 @@ def execute_action(state: AgentState):
         # ref
         # box
         #
-        # Example:
-        #
-        # {
-        #     "label": "Name",
-        #     "type": "textbox",
-        #     "ref": "e2",
-        #     "box": {
-        #         "x": 381,
-        #         "y": 197.4375,
-        #         "width": 500,
-        #         "height": 42
-        #     }
-        # }
+        # The ref/box remain useful as INTERNAL evidence
+        # and debugging information. They are not used as
+        # the final generated click/fill commands.
         # --------------------------------------------------
 
         if action_type in (
@@ -202,10 +219,6 @@ def execute_action(state: AgentState):
         "browser_commands",
         []
     ).copy()
-
-    command = result.get(
-        "command"
-    )
 
     if success and command:
 

@@ -4,50 +4,306 @@
 
 This skill guides the agent in **Scenario 3 — Exploratory Testing / Autonomous Bug Discovery**.
 
-Unlike Scenario 1 (build a test from a stated requirement) or Scenario 2 (repair an existing test), this scenario gives the agent no requirement and no existing script — only an application to explore. The agent must think like an experienced QA tester and decide, entirely on its own, which behaviors are worth probing on this specific application.
+Unlike Scenario 1, which starts from a requirement, and Scenario 2, which starts from an existing test, Scenario 3 may receive only an application path.
+
+The agent must think like an experienced QA tester, inspect the real application, choose worthwhile cases from what it actually observes, execute those cases, and report evidence-based outcomes.
+
+All click/fill execution must use the project's dynamic coordinate-location mechanism and physical Agent Browser mouse / clipboard commands.
+
+---
 
 ## When to Use
 
-Use this skill when `task_mode` is `explore`: no `requirement` and no `existing_script` were provided, only an `app_path`.
+Use this skill when:
+
+```text
+task_mode = explore
+```
+
+with no requirement and no existing script.
+
+---
 
 ## Mindset
 
-Do not rely on a fixed checklist of "standard" test ideas. Instead, base every idea on what you actually observe on this page: its fields, their types, their constraints, and their apparent purpose.
+Do not apply a fixed generic checklist blindly.
 
-For each element you observe, reason about it directly:
-- What is this field's evident purpose, and what would a real user realistically enter?
-- What would happen if the value given to it violated what its type or purpose implies?
-- What would a skeptical, experienced tester specifically worry about for *this* element, given what it is?
+Base every exploratory idea on what is actually observed on the current page:
 
-Two different applications should lead you to different ideas, because the ideas come from what you actually see, not from a fixed list applied identically everywhere. Prefer a small set of high-value, well-reasoned cases over a long list of generic ones.
+- fields,
+- field types,
+- constraints,
+- buttons,
+- links,
+- visible workflow,
+- apparent purpose,
+- and current page context.
+
+Ask:
+
+- What is this element for?
+- What might a real user enter or do here?
+- What input would violate its apparent purpose?
+- What edge case is specifically valuable for this element?
+- What visible response would indicate correct handling?
+
+Prefer a small set of high-value cases over many generic cases.
+
+---
+
+## Dynamic Element Location Policy
+
+Scenario 3 uses dynamic element discovery and coordinate-based physical execution.
+
+Correct flow:
+
+```text
+Observe current page
+        ↓
+choose a real observed element
+        ↓
+use its temporary current ref internally
+        ↓
+browser tool requests CURRENT bounding box
+        ↓
+Python calculates current center coordinates
+        ↓
+physical mouse interaction
+        ↓
+clipboard input when text is required
+```
+
+### Refs are internal only
+
+A current ref such as:
+
+```text
+@e3
+```
+
+may be used internally to identify the selected element.
+
+It must not appear as the final click/fill locator in the generated exploratory script.
+
+### Never invent coordinates
+
+The model must never guess x/y positions.
+
+Coordinates must come from the live bounding box of the current observed element.
+
+### Never invent selectors
+
+Do not invent CSS, XPath, IDs, or other static locator syntax.
+
+### Re-observe between changing states
+
+Exploratory cases may alter the page.
+
+After meaningful UI changes or resets, use the latest observation and current refs.
+
+Do not reuse stale refs from an earlier page state.
+
+---
 
 ## Workflow
 
-1. **Observe first.** Take a snapshot/screenshot of the app before proposing anything. Your ideas must come from elements you actually observed — never propose a case for a field or button you have not seen.
-2. **Reason case-by-case.** For each observed element worth probing, explain to yourself (briefly) why it is worth probing, grounded in what that specific element is.
-3. **Propose a short list of scenarios** (roughly 3-6), each with:
-   - a one-line goal describing the case and what you are probing,
-   - what a *correct* application should do in response.
-4. **Execute each scenario** using the available browser actions (fill, click, navigate), one at a time.
-5. **Observe the actual outcome** after each scenario (snapshot/screenshot).
-6. **Judge the result:**
-   - `handled correctly` — the app responded safely (e.g. validation message, submission blocked).
-   - `bug found` — the app accepted invalid input, showed no feedback, crashed the flow, or otherwise misbehaved.
-   - `inconclusive` — insufficient evidence to judge; do not guess.
+### 1. Observe First
+
+Take a snapshot and/or screenshot before proposing cases.
+
+Every case must come from elements actually observed.
+
+Do not propose a case for a field or button that was not seen.
+
+---
+
+### 2. Reason Case-by-Case
+
+For each element worth probing, reason briefly about why the case is valuable for that specific element.
+
+Do not use a predefined list without grounding it in the actual page.
+
+---
+
+### 3. Propose a Short List of Cases
+
+Create roughly 3–6 high-value cases.
+
+Each case should have:
+
+- a one-line goal,
+- the specific observed element(s) involved,
+- what is being probed,
+- and what a correct application should visibly do.
+
+Each case should be independent whenever possible.
+
+---
+
+### 4. Decide Actions from Current Observations
+
+For each step:
+
+- choose only currently observed elements,
+- use only current refs internally,
+- never invent a ref,
+- never invent coordinates,
+- never invent static selectors.
+
+The execution layer will convert the current observed ref into current coordinates.
+
+---
+
+### 5. Execute Each Case
+
+Use available browser actions:
+
+```text
+fill
+click
+navigate
+```
+
+For a click, physical execution should become:
+
+```text
+agent-browser mouse move X Y
+agent-browser mouse down left
+agent-browser mouse up left
+```
+
+For text entry, physical execution should become:
+
+```text
+agent-browser mouse move X Y
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser press Control+a
+agent-browser clipboard write "VALUE"
+agent-browser clipboard paste
+```
+
+The model must not manually guess these coordinates.
+
+The browser tools generate them from the current bounding box.
+
+---
+
+### 6. Observe the Actual Outcome
+
+After each case, inspect the resulting UI using snapshot and/or screenshot.
+
+Do not judge the result from the fact that commands executed.
+
+Judge from actual visible or textual application evidence.
+
+---
+
+### 7. Judge the Result
+
+Use one of:
+
+```text
+HANDLED
+BUG FOUND
+INCONCLUSIVE
+```
+
+#### HANDLED
+
+Use when there is evidence that the application safely and correctly handled the tested case.
+
+#### BUG FOUND
+
+Use when observed evidence shows incorrect or unsafe behavior.
+
+Examples may include accepting clearly invalid input when it should not, broken flow, crash-like behavior, or missing required handling.
+
+Do not report a bug without observed evidence.
+
+#### INCONCLUSIVE
+
+Use when there is not enough evidence to decide.
+
+Do not guess.
+
+---
 
 ## Rules
 
-- Do not invent UI elements, error messages, or behavior that were not actually observed.
-- Do not report a bug without an observed action + observed outcome as evidence.
-- Every scenario must be traceable to a specific element you actually observed, and to your own reasoning about it — not to a predefined category.
-- Each scenario should be independent and runnable on its own.
+- Do not invent UI elements.
+- Do not invent error messages.
+- Do not invent application behavior.
+- Do not invent refs.
+- Do not invent coordinates.
+- Do not invent CSS/XPath selectors.
+- Every case must be traceable to an actually observed element.
+- Every verdict must be grounded in an observed action and observed outcome.
+- Each case should be independent when possible.
+- Re-observe after state changes.
+- Use current bounding boxes for physical execution.
+- Preserve the actual Agent Browser commands returned by execution.
+
+---
+
+## Multi-Page Exploration
+
+When the graph permits page discovery:
+
+- explore only allowed discovered pages,
+- respect same-domain and configured page limits,
+- observe each page before planning cases,
+- treat refs as page-state-specific,
+- dynamically resolve current coordinates separately on each page.
+
+Do not assume an element's previous coordinates apply to another page or later page state.
+
+---
 
 ## Output Requirements
 
-For successful Scenario 3 execution, produce a report where each explored case has:
+For successful Scenario 3 execution, produce an exploratory report where each case includes:
 
 1. the scenario tried,
-2. the runnable Agent Browser command sequence for that case (same format as Scenario 1: lines prefixed with `agent-browser`, refs with `@`),
-3. a one-line verdict: `HANDLED`, `BUG FOUND`, or `INCONCLUSIVE`, with a short reason grounded in the observed outcome.
+2. the **actual runnable Agent Browser command sequence executed for that case**,
+3. a one-line verdict:
+   - `HANDLED`
+   - `BUG FOUND`
+   - `INCONCLUSIVE`
+4. a short reason grounded in the observed outcome.
 
-Do not fabricate a bug to seem more useful, and do not mark something `HANDLED` without observed evidence.
+### Required command style
+
+Click actions should appear as:
+
+```text
+agent-browser mouse move X Y
+agent-browser mouse down left
+agent-browser mouse up left
+```
+
+Fill actions should appear as:
+
+```text
+agent-browser mouse move X Y
+agent-browser mouse down left
+agent-browser mouse up left
+agent-browser press Control+a
+agent-browser clipboard write "VALUE"
+agent-browser clipboard paste
+```
+
+### Forbidden final click/fill style
+
+Do not reconstruct final exploratory commands as:
+
+```text
+agent-browser click @e5
+agent-browser fill @e2 "VALUE"
+```
+
+Refs may exist internally for observation and execution targeting, but the final report must preserve the real coordinate/mouse/clipboard commands that were actually executed.
+
+Do not fabricate a bug to appear useful.
+
+Do not mark a case `HANDLED` without observed evidence.

@@ -25,7 +25,7 @@ USE_GEMINI = bool(GEMINI_API_KEY)
 if USE_GEMINI:
     from google import genai
     _gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-    MODEL_NAME = "gemini-2.5-flash"
+    MODEL_NAME ="gemini-3.5-flash-lite"
     print(f"[model] Using Gemini API (model: {MODEL_NAME})")
 else:
     import ollama

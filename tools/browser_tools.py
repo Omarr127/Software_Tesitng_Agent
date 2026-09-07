@@ -2,6 +2,7 @@ import subprocess
 
 
 def run_command(args, command_text=None):
+
     """
     Execute Agent Browser CLI command.
 
@@ -14,8 +15,26 @@ def run_command(args, command_text=None):
 
     try:
 
+        # --------------------------------------------------
+        # Windows-safe command construction
+        #
+        # On Windows, agent-browser is commonly installed as
+        # a .cmd launcher. Passing shell=True together with a
+        # Python argument list can cause the subcommands/args
+        # to be parsed incorrectly.
+        #
+        # Build one properly quoted command string instead.
+        # --------------------------------------------------
+
+        full_command = subprocess.list2cmdline(
+            ["agent-browser"] + [
+                str(arg)
+                for arg in args
+            ]
+        )
+
         result = subprocess.run(
-            ["agent-browser"] + args,
+            full_command,
             capture_output=True,
             text=True,
             shell=True,
@@ -51,6 +70,7 @@ def run_command(args, command_text=None):
 
 
 def open_app(url):
+
     """
     Open application using Agent Browser.
     """
@@ -62,6 +82,7 @@ def open_app(url):
 
 
 def snapshot():
+
     """
     Get current page accessibility snapshot.
     """
@@ -72,29 +93,8 @@ def snapshot():
     )
 
 
-def click(ref):
-    """
-    Click an element using its Agent Browser reference.
-    """
-
-    return run_command(
-        ["click", ref],
-        f"agent-browser click {ref}"
-    )
-
-
-def fill(ref, text):
-    """
-    Fill input field.
-    """
-
-    return run_command(
-        ["fill", ref, text],
-        f'agent-browser fill {ref} "{text}"'
-    )
-
-
 def get_box(ref):
+
     """
     Get the bounding box of an element.
 
@@ -121,7 +121,437 @@ def get_box(ref):
     )
 
 
+def press(key):
+
+    """
+    Press a keyboard key or shortcut.
+
+    Example:
+        press("Control+a")
+
+    Returns the real Agent Browser command so it can
+    be included in the generated output script.
+    """
+
+    return run_command(
+        [
+            "press",
+            key
+        ],
+        f"agent-browser press {key}"
+    )
+
+
+def click(ref):
+
+    """
+    Click an element using its CURRENT
+    bounding-box coordinates.
+
+    The ref is only used to dynamically
+    retrieve the current element position.
+
+    The generated browser command does NOT
+    contain the ref.
+
+    Instead it contains:
+
+        mouse move x y
+        mouse down left
+        mouse up left
+
+    This makes the generated test script
+    coordinate-based instead of ref-based.
+    """
+
+    # --------------------------------------------------
+    # 1. Get current element bounding box
+    # --------------------------------------------------
+
+    box_result = get_box(ref)
+
+    if not box_result.get("success"):
+
+        return {
+            "success": False,
+            "output": None,
+            "error": box_result.get(
+                "error",
+                "Unable to get element bounding box."
+            ),
+            "command": None
+        }
+
+    # --------------------------------------------------
+    # 2. Parse bounding box
+    #
+    # Expected output:
+    #
+    # x:      1071.609375
+    # y:      163
+    # width:  80.046875
+    # height: 47
+    # --------------------------------------------------
+
+    try:
+
+        box = {}
+
+        for line in box_result.get(
+            "output",
+            ""
+        ).splitlines():
+
+            if ":" not in line:
+                continue
+
+            key, value = line.split(
+                ":",
+                1
+            )
+
+            box[key.strip()] = float(
+                value.strip()
+            )
+
+        x = box["x"]
+        y = box["y"]
+        width = box["width"]
+        height = box["height"]
+
+    except (
+        ValueError,
+        KeyError
+    ) as e:
+
+        return {
+            "success": False,
+            "output": None,
+            "error": (
+                f"Invalid bounding box for "
+                f"{ref}: {e}"
+            ),
+            "command": None
+        }
+
+    # --------------------------------------------------
+    # 3. Calculate center of element
+    #
+    # Round to integer pixel coordinates because
+    # Agent Browser mouse commands expect x/y positions.
+    # --------------------------------------------------
+
+    center_x = round(
+        x + (width / 2)
+    )
+
+    center_y = round(
+        y + (height / 2)
+    )
+
+    # --------------------------------------------------
+    # 4. Move mouse to element center
+    # --------------------------------------------------
+
+    move_result = run_command(
+        [
+            "mouse",
+            "move",
+            str(center_x),
+            str(center_y)
+        ],
+        (
+            f"agent-browser mouse move "
+            f"{center_x} {center_y}"
+        )
+    )
+
+    if not move_result.get("success"):
+
+        return move_result
+
+    # --------------------------------------------------
+    # 5. Press mouse button
+    # --------------------------------------------------
+
+    down_result = run_command(
+        [
+            "mouse",
+            "down",
+            "left"
+        ],
+        "agent-browser mouse down left"
+    )
+
+    if not down_result.get("success"):
+
+        return down_result
+
+    # --------------------------------------------------
+    # 6. Release mouse button
+    # --------------------------------------------------
+
+    up_result = run_command(
+        [
+            "mouse",
+            "up",
+            "left"
+        ],
+        "agent-browser mouse up left"
+    )
+
+    if not up_result.get("success"):
+
+        return up_result
+
+    # --------------------------------------------------
+    # 7. Build coordinate-based command
+    # --------------------------------------------------
+
+    command = "\n".join(
+        [
+            move_result["command"],
+            down_result["command"],
+            up_result["command"]
+        ]
+    )
+
+    return {
+        "success": True,
+        "output": up_result.get(
+            "output"
+        ),
+        "error": None,
+        "command": command
+    }
+
+
+def fill(ref, text):
+
+    """
+    Fill an input using its CURRENT
+    bounding-box coordinates.
+
+    The ref is only used to dynamically
+    retrieve the current element position.
+
+    The generated browser commands use:
+
+        mouse move
+        mouse down
+        mouse up
+        press Control+a
+        clipboard write
+        clipboard paste
+
+    The generated script therefore does
+    not depend on a static element ref.
+    """
+
+    # --------------------------------------------------
+    # 1. Get current element bounding box
+    # --------------------------------------------------
+
+    box_result = get_box(ref)
+
+    if not box_result.get("success"):
+
+        return {
+            "success": False,
+            "output": None,
+            "error": box_result.get(
+                "error",
+                "Unable to get element bounding box."
+            ),
+            "command": None
+        }
+
+    # --------------------------------------------------
+    # 2. Parse bounding box
+    # --------------------------------------------------
+
+    try:
+
+        box = {}
+
+        for line in box_result.get(
+            "output",
+            ""
+        ).splitlines():
+
+            if ":" not in line:
+                continue
+
+            key, value = line.split(
+                ":",
+                1
+            )
+
+            box[key.strip()] = float(
+                value.strip()
+            )
+
+        x = box["x"]
+        y = box["y"]
+        width = box["width"]
+        height = box["height"]
+
+    except (
+        ValueError,
+        KeyError
+    ) as e:
+
+        return {
+            "success": False,
+            "output": None,
+            "error": (
+                f"Invalid bounding box for "
+                f"{ref}: {e}"
+            ),
+            "command": None
+        }
+
+    # --------------------------------------------------
+    # 3. Calculate center of element
+    #
+    # Round to integer pixel coordinates because
+    # Agent Browser mouse commands expect x/y positions.
+    # --------------------------------------------------
+
+    center_x = round(
+        x + (width / 2)
+    )
+
+    center_y = round(
+        y + (height / 2)
+    )
+
+    # --------------------------------------------------
+    # 4. Move mouse to input
+    # --------------------------------------------------
+
+    move_result = run_command(
+        [
+            "mouse",
+            "move",
+            str(center_x),
+            str(center_y)
+        ],
+        (
+            f"agent-browser mouse move "
+            f"{center_x} {center_y}"
+        )
+    )
+
+    if not move_result.get("success"):
+
+        return move_result
+
+    # --------------------------------------------------
+    # 5. Click input
+    # --------------------------------------------------
+
+    down_result = run_command(
+        [
+            "mouse",
+            "down",
+            "left"
+        ],
+        "agent-browser mouse down left"
+    )
+
+    if not down_result.get("success"):
+
+        return down_result
+
+    up_result = run_command(
+        [
+            "mouse",
+            "up",
+            "left"
+        ],
+        "agent-browser mouse up left"
+    )
+
+    if not up_result.get("success"):
+
+        return up_result
+
+    # --------------------------------------------------
+    # 6. Select any existing input value
+    #
+    # This makes fill() behave like a real fill action
+    # instead of appending the new value to old text.
+    # --------------------------------------------------
+
+    select_all_result = press(
+        "Control+a"
+    )
+
+    if not select_all_result.get("success"):
+
+        return select_all_result
+
+    # --------------------------------------------------
+    # 7. Write value to clipboard
+    # --------------------------------------------------
+
+    clipboard_result = run_command(
+        [
+            "clipboard",
+            "write",
+            text
+        ],
+        f'agent-browser clipboard write "{text}"'
+    )
+
+    if not clipboard_result.get("success"):
+
+        return clipboard_result
+
+    # --------------------------------------------------
+    # 8. Paste clipboard into input
+    # --------------------------------------------------
+
+    paste_result = run_command(
+        [
+            "clipboard",
+            "paste"
+        ],
+        "agent-browser clipboard paste"
+    )
+
+    if not paste_result.get("success"):
+
+        return paste_result
+
+    # --------------------------------------------------
+    # 9. Build coordinate + clipboard command
+    # --------------------------------------------------
+
+    command = "\n".join(
+        [
+            move_result["command"],
+            down_result["command"],
+            up_result["command"],
+            select_all_result["command"],
+            clipboard_result["command"],
+            paste_result["command"]
+        ]
+    )
+
+    return {
+        "success": True,
+        "output": paste_result.get(
+            "output"
+        ),
+        "error": None,
+        "command": command
+    }
+
+
 def navigate(url):
+
     """
     Navigate to another URL.
     """
@@ -133,6 +563,7 @@ def navigate(url):
 
 
 def screenshot(filename="screenshot.png"):
+
     """
     Capture screenshot.
     """
@@ -142,7 +573,9 @@ def screenshot(filename="screenshot.png"):
         f"agent-browser screenshot {filename}"
     )
 
+
 def eval_js(script: str):
+
     """
     Run raw JavaScript in the page via agent-browser eval
     and return the raw stdout as output.
@@ -155,6 +588,7 @@ def eval_js(script: str):
 
 
 def get_current_url():
+
     """
     Get the current page URL.
     """
@@ -180,11 +614,14 @@ _LIST_LINKS_SCRIPT = (
 
 
 def list_page_links():
+
     """
     Extract all <a href> links from the current page.
     """
 
-    return eval_js(_LIST_LINKS_SCRIPT)
+    return eval_js(
+        _LIST_LINKS_SCRIPT
+    )
 
 
 if __name__ == "__main__":

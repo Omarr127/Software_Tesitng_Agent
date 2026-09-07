@@ -502,24 +502,38 @@ def generate_output(state: AgentState):
 
             for cid, actions in page_cases.items():
 
-                # Build command lines for this case
-                for action in actions:
-                    action_type = action.get("action", "")
-                    target = action.get("target", "")
-                    value = action.get("value", "")
+                # Build command lines for this case from the
+                # EXACT commands that execute.py stored after
+                # successful execution.
+                #
+                # Important:
+                # - fill/click refs remain internal to the agent.
+                # - The final report uses the physical commands
+                #   returned by browser_tools.py instead:
+                #
+                #   agent-browser mouse move x y
+                #   agent-browser mouse down left
+                #   agent-browser mouse up left
+                #   agent-browser press Control+a
+                #   agent-browser clipboard write "value"
+                #   agent-browser clipboard paste
+                #
+                # This prevents Scenario 3 from rebuilding old
+                # static commands such as:
+                #
+                #   agent-browser fill @e2 "value"
+                #   agent-browser click @e5
+                # --------------------------------------------------
 
-                    if action_type == "fill":
+                for action in actions:
+
+                    command = action.get(
+                        "command"
+                    )
+
+                    if command:
                         output.append(
-                            f'agent-browser fill {target} '
-                            f'"{value}"'
-                        )
-                    elif action_type == "click":
-                        output.append(
-                            f"agent-browser click {target}"
-                        )
-                    elif action_type == "navigate":
-                        output.append(
-                            f"agent-browser open {value}"
+                            command
                         )
 
                 # Determine verdict from VLM validation

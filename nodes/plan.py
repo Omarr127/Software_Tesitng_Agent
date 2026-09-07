@@ -8,33 +8,160 @@ from utils.json_utils import clean_json_response
 from memory import memory_store
 
 
-def _parse_plan(response: str, task_mode: str = "new_test") -> list:
+def _is_maintenance_execution_step(goal: str) -> bool:
     """
-    Parse and validate a plan response into a list of step dicts.
+    Return True when a Scenario 2 plan step represents
+    a real user/browser interaction that belongs in the
+    Execute node.
 
-    For "explore", every step also carries a "case_id" so multiple
-    consecutive steps (e.g. fill an invalid value, then click submit)
-    can be recognized as belonging to the same test case rather than
-    being treated as unrelated one-action steps.
+    Scenario 2 verification is handled separately by
+    the Verify node, so plan steps such as:
+
+        Take a screenshot
+        Verify success
+        Check result
+        Validate outcome
+        Observe final state
+
+    must NOT become executable maintenance steps.
+
+    This prevents Execute from receiving:
+
+        action = None
+
+    for a verification-only plan step.
+    """
+
+    if not isinstance(goal, str):
+        return False
+
+    normalized = goal.strip().lower()
+
+    if not normalized:
+        return False
+
+    # --------------------------------------------------
+    # Verification / observation-only steps do not
+    # belong in the Scenario 2 execution plan.
+    # --------------------------------------------------
+
+    non_execution_prefixes = (
+        "take a screenshot",
+        "capture a screenshot",
+        "take screenshot",
+        "capture screenshot",
+        "screenshot",
+        "verify ",
+        "validate ",
+        "assert ",
+        "check ",
+        "confirm ",
+        "inspect ",
+        "observe ",
+        "compare ",
+        "ensure ",
+    )
+
+    if normalized.startswith(
+        non_execution_prefixes
+    ):
+        return False
+
+    # --------------------------------------------------
+    # These are also clearly verification-oriented
+    # phrases rather than user interactions.
+    # --------------------------------------------------
+
+    verification_phrases = (
+        "verify the registration result",
+        "verify the result",
+        "verify the outcome",
+        "verify successful",
+        "validate the result",
+        "validate the outcome",
+        "check the result",
+        "check the outcome",
+        "confirm success",
+        "confirm the result",
+        "compare actual",
+        "compare expected",
+        "expected result",
+        "actual result",
+    )
+
+    for phrase in verification_phrases:
+
+        if phrase in normalized:
+            return False
+
+    return True
+
+
+def _parse_plan(
+    response: str,
+    task_mode: str = "new_test"
+) -> list:
+    """
+    Parse and validate a plan response into a list
+    of step dictionaries.
+
+    Scenario 1:
+        Normal functional interaction steps.
+
+    Scenario 2:
+        Keep only executable browser interaction
+        steps. Final verification is handled by
+        the Verify node.
+
+    Scenario 3:
+        Every step also carries a case_id so
+        multiple consecutive actions can belong
+        to the same exploratory case.
     """
 
     try:
-        plan = json.loads(response)
+
+        plan = json.loads(
+            response
+        )
+
     except json.JSONDecodeError:
-        print("Plan node returned invalid JSON:")
-        print(response)
+
+        print(
+            "Plan node returned invalid JSON:"
+        )
+
+        print(
+            response
+        )
+
         return []
 
     valid_plan = []
 
-    if isinstance(plan, list):
-        for index, step in enumerate(plan):
-            if not isinstance(step, dict):
+    if isinstance(
+        plan,
+        list
+    ):
+
+        for index, step in enumerate(
+            plan
+        ):
+
+            if not isinstance(
+                step,
+                dict
+            ):
                 continue
 
-            goal = step.get("goal")
+            goal = step.get(
+                "goal"
+            )
 
-            if not isinstance(goal, str):
+            if not isinstance(
+                goal,
+                str
+            ):
                 continue
 
             goal = goal.strip()
@@ -42,14 +169,56 @@ def _parse_plan(response: str, task_mode: str = "new_test") -> list:
             if not goal:
                 continue
 
-            case_id = step.get("case_id")
+            # --------------------------------------------------
+            # Scenario 2:
+            #
+            # Keep only browser interaction steps.
+            #
+            # Verification / screenshots / assertions belong
+            # to the Verify node and must not enter Execute.
+            # --------------------------------------------------
+
+            if (
+                task_mode == "maintenance"
+                and not _is_maintenance_execution_step(
+                    goal
+                )
+            ):
+
+                print(
+                    "Plan: removing maintenance "
+                    "verification-only step:"
+                )
+
+                print(
+                    f"  {goal}"
+                )
+
+                continue
+
+            case_id = step.get(
+                "case_id"
+            )
 
             if task_mode == "explore":
-                # If the model forgot to group steps into cases, fall
-                # back to treating each step as its own case rather
-                # than silently losing the grouping information.
-                if not case_id or not isinstance(case_id, str):
-                    case_id = f"case_{index + 1}"
+
+                # --------------------------------------------------
+                # If the model forgot to group steps into
+                # exploratory cases, treat each step as its
+                # own case rather than losing grouping data.
+                # --------------------------------------------------
+
+                if (
+                    not case_id
+                    or not isinstance(
+                        case_id,
+                        str
+                    )
+                ):
+
+                    case_id = (
+                        f"case_{index + 1}"
+                    )
 
             valid_plan.append({
                 "goal": goal,
@@ -59,20 +228,30 @@ def _parse_plan(response: str, task_mode: str = "new_test") -> list:
     return valid_plan
 
 
-def _distinct_case_count(plan: list) -> int:
+def _distinct_case_count(
+    plan: list
+) -> int:
+
     return len({
-        step.get("case_id")
+        step.get(
+            "case_id"
+        )
         for step in plan
-        if step.get("case_id")
+        if step.get(
+            "case_id"
+        )
     })
 
 
-def create_plan(state: AgentState):
+def create_plan(
+    state: AgentState
+):
     """
     Create an ordered, atomic testing plan.
 
-    Each plan step should represent ONE logical browser action
-    so that the LangGraph execution model remains:
+    Each plan step should represent ONE logical
+    browser interaction so the execution model
+    remains:
 
         Observe
             ↓
@@ -81,6 +260,17 @@ def create_plan(state: AgentState):
         Execute
             ↓
         Next plan step
+
+    Scenario 2 is special:
+
+        Browser interaction steps
+            ↓
+        Complete plan
+            ↓
+        Verify node
+
+    Screenshot / assertion / verification steps
+    therefore do not belong inside its plan.
     """
 
     # --------------------------------------------------
@@ -102,29 +292,42 @@ def create_plan(state: AgentState):
     )
 
     # --------------------------------------------------
-    # 2.1 Explore mode: get memory history for this page
+    # 2.1 Explore mode:
     #
-    # The plan prompt gets a short summary of cases
-    # already tried on this same page in earlier runs,
-    # so repeat runs explore new ground instead of
-    # rediscovering the same case every time.
+    # Get previous memory for the current page.
     # --------------------------------------------------
 
     known_history = None
 
-    if task_mode == "explore" and state.get("app_path"):
+    if (
+        task_mode == "explore"
+        and state.get(
+            "app_path"
+        )
+    ):
+
         page_url = (
-            state.get("current_page_url")
-            or state.get("app_path")
+            state.get(
+                "current_page_url"
+            )
+            or state.get(
+                "app_path"
+            )
         )
 
-        history = memory_store.get_page_history(
-            state["app_path"],
-            page_url
+        history = (
+            memory_store.get_page_history(
+                state[
+                    "app_path"
+                ],
+                page_url
+            )
         )
 
-        known_history = memory_store.format_history_for_prompt(
-            history
+        known_history = (
+            memory_store.format_history_for_prompt(
+                history
+            )
         )
 
     # --------------------------------------------------
@@ -150,6 +353,58 @@ def create_plan(state: AgentState):
     )
 
     # --------------------------------------------------
+    # 3.1 Scenario 2:
+    #
+    # Explicitly prevent the model from putting
+    # verification operations in the interaction plan.
+    #
+    # The Verify node already owns final validation.
+    # --------------------------------------------------
+
+    if task_mode == "maintenance":
+
+        prompt += """
+
+IMPORTANT SCENARIO 2 PLANNING RULES:
+
+Return ONLY executable user-interaction steps.
+
+Each plan step must describe one interaction that
+can eventually become one of these browser actions:
+
+- fill
+- click
+- navigate
+
+Examples of valid plan steps:
+
+- Fill the Name field with "John Doe".
+- Fill the Email field with "user@example.com".
+- Fill the Password field with "Password123!".
+- Click the Create Account button.
+
+DO NOT add plan steps for:
+
+- taking screenshots
+- taking snapshots
+- observing the page
+- inspecting the result
+- verifying the result
+- validating the result
+- checking success
+- checking an assertion
+- comparing actual and expected behavior
+- confirming the final result
+
+Scenario 2 final behavior verification is performed
+separately by the Verify node after all interaction
+steps are complete.
+
+Therefore the last plan step should be the final
+required USER INTERACTION, not a verification step.
+"""
+
+    # --------------------------------------------------
     # 4. Ask model to create the plan
     # --------------------------------------------------
 
@@ -169,47 +424,95 @@ def create_plan(state: AgentState):
     # 6. Parse plan
     # --------------------------------------------------
 
-    valid_plan = _parse_plan(response, task_mode)
+    valid_plan = _parse_plan(
+        response,
+        task_mode
+    )
 
     # --------------------------------------------------
-    # 6.1 Explore mode requires at least 3 DISTINCT CASES
-    #
-    # This is a mechanical retry to enforce the count the
-    # skill/prompt already asks for, not new content we
-    # are supplying. We count distinct case_id values,
-    # not steps, since a single case can legitimately
-    # need more than one step (e.g. fill + submit).
+    # 6.1 Explore mode requires at least
+    # 3 DISTINCT CASES.
     # --------------------------------------------------
 
     MIN_EXPLORE_CASES = 3
+
     MAX_PLAN_RETRIES = 1
 
     retries_done = 0
 
     while (
         task_mode == "explore"
-        and _distinct_case_count(valid_plan) < MIN_EXPLORE_CASES
-        and retries_done < MAX_PLAN_RETRIES
+        and _distinct_case_count(
+            valid_plan
+        ) < MIN_EXPLORE_CASES
+        and retries_done
+        < MAX_PLAN_RETRIES
     ):
+
         print(
-            f"Plan returned only {_distinct_case_count(valid_plan)} "
-            "distinct case(s) in explore mode -- retrying to meet the "
-            f"minimum of {MIN_EXPLORE_CASES}."
+            f"Plan returned only "
+            f"{_distinct_case_count(valid_plan)} "
+            "distinct case(s) in explore mode "
+            "-- retrying to meet the minimum of "
+            f"{MIN_EXPLORE_CASES}."
         )
 
-        response = invoke_llm(prompt)
-        response = clean_json_response(response)
+        response = invoke_llm(
+            prompt
+        )
 
-        retry_plan = _parse_plan(response, task_mode)
+        response = clean_json_response(
+            response
+        )
 
-        # Keep whichever attempt covers more distinct cases
-        if _distinct_case_count(retry_plan) > _distinct_case_count(valid_plan):
+        retry_plan = _parse_plan(
+            response,
+            task_mode
+        )
+
+        # Keep whichever attempt covers
+        # more distinct exploratory cases.
+
+        if (
+            _distinct_case_count(
+                retry_plan
+            )
+            >
+            _distinct_case_count(
+                valid_plan
+            )
+        ):
+
             valid_plan = retry_plan
 
         retries_done += 1
 
     # --------------------------------------------------
-    # 7. Select first step
+    # 7. Debug Scenario 2 plan
+    # --------------------------------------------------
+
+    if task_mode == "maintenance":
+
+        print(
+            "\n========== MAINTENANCE PLAN =========="
+        )
+
+        for index, step in enumerate(
+            valid_plan,
+            start=1
+        ):
+
+            print(
+                f"{index}. "
+                f"{step.get('goal')}"
+            )
+
+        print(
+            "======================================\n"
+        )
+
+    # --------------------------------------------------
+    # 8. Select first step
     # --------------------------------------------------
 
     current_step = (
@@ -219,7 +522,7 @@ def create_plan(state: AgentState):
     )
 
     # --------------------------------------------------
-    # 8. Update LangGraph state
+    # 9. Update LangGraph state
     # --------------------------------------------------
 
     return {
