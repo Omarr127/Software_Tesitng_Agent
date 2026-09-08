@@ -3,6 +3,7 @@ from tools.browser_tools import (
     click,
     fill,
     navigate,
+    press,
     snapshot
 )
 
@@ -74,6 +75,12 @@ def execute_action(state: AgentState):
             value
         )
 
+    elif action_type == "press":
+
+        result = press(
+            value
+        )
+
     else:
 
         result = {
@@ -95,6 +102,7 @@ def execute_action(state: AgentState):
     # Keep the exact command sequence returned by the
     # browser tool. For click/fill this is now the real
     # coordinate-based mouse/clipboard sequence.
+    # For press, this is the real Agent Browser key command.
     command = result.get(
         "command"
     )
@@ -127,6 +135,10 @@ def execute_action(state: AgentState):
         # agent-browser press Control+a
         # agent-browser clipboard write "Aya"
         # agent-browser clipboard paste
+        #
+        # Example for press:
+        #
+        # agent-browser press Enter
         #
         # The element ref may remain in target internally,
         # but generate.py can now output this command instead

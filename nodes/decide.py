@@ -22,6 +22,45 @@ def _empty_action():
     }
 
 
+def _is_enter_step(current_step) -> bool:
+    """
+    Return True when the current plan step explicitly
+    asks to press Enter / Return.
+
+    This lets Decide safely normalize a model response
+    such as:
+
+        fill(target, "\\n")
+
+    into the real keyboard action:
+
+        press("Enter")
+
+    instead of trying to write a newline through the
+    clipboard.
+    """
+
+    step_text = str(
+        current_step or ""
+    ).lower()
+
+    enter_phrases = [
+        "press enter",
+        "hit enter",
+        "press return",
+        "hit return",
+        "submit with enter",
+        "submit using enter",
+        "submit by pressing enter",
+        "submit the search query with enter",
+    ]
+
+    return any(
+        phrase in step_text
+        for phrase in enter_phrases
+    )
+
+
 def decide_action(state: AgentState):
     """
     Decide the next concrete browser action for the current step.
@@ -29,6 +68,16 @@ def decide_action(state: AgentState):
     Important safety rule:
     Decide may only act on information discovered by Observe.
     It must never invent a browser reference or URL.
+
+    Supported actions:
+
+        fill
+        click
+        navigate
+        press
+
+    The press action is currently used for an explicitly
+    requested Enter/Return step.
     """
 
     task_mode = state.get(
@@ -53,13 +102,20 @@ def decide_action(state: AgentState):
     # --------------------------------------------------
     # 1. Safety check
     #
-    # If Observe found nothing, Decide has no valid
-    # UI target to act on.
+    # If Observe found nothing, Decide normally has no
+    # valid UI target to act on.
     #
-    # Do NOT ask the LLM to guess.
+    # A keyboard-only Enter step is the exception because
+    # it acts on the currently focused browser element and
+    # does not require a new ref.
     # --------------------------------------------------
 
-    if not target_elements:
+    if (
+        not target_elements
+        and not _is_enter_step(
+            current_step
+        )
+    ):
 
         print(
             "Decide: no target elements were observed."
@@ -91,7 +147,40 @@ def decide_action(state: AgentState):
     )
 
     # --------------------------------------------------
-    # 4. Send prompt to Gemini
+    # 3.1 Add a small execution rule for Enter
+    #
+    # This keeps the existing prompt architecture intact
+    # while making the new press action explicit.
+    # --------------------------------------------------
+
+    if _is_enter_step(
+        current_step
+    ):
+
+        prompt += """
+
+IMPORTANT KEYBOARD ACTION RULE:
+
+The current step explicitly requires pressing Enter/Return.
+
+Return:
+
+{
+  "action": "press",
+  "target": "",
+  "value": "Enter"
+}
+
+Do NOT represent Enter as:
+- a fill action,
+- "\\n",
+- "\\r",
+- clipboard text,
+- or a click on an invented target.
+"""
+
+    # --------------------------------------------------
+    # 4. Send prompt to model
     # --------------------------------------------------
 
     try:
@@ -166,13 +255,61 @@ def decide_action(state: AgentState):
     )
 
     # --------------------------------------------------
+    # 7.1 Backward-compatible Enter normalization
+    #
+    # Smaller models may still return:
+    #
+    #   action = fill
+    #   value = "\\n"
+    #
+    # for a clear "Press Enter" step.
+    #
+    # Convert that mechanical representation into the
+    # real keyboard action instead of sending a newline
+    # to clipboard write.
+    # --------------------------------------------------
+
+    if (
+        _is_enter_step(
+            current_step
+        )
+        and action_type == "fill"
+        and value in [
+            "\n",
+            "\r",
+            "\r\n",
+            "Enter",
+            "enter",
+            "Return",
+            "return"
+        ]
+    ):
+
+        print(
+            "Decide: normalized Enter from fill "
+            "into a press action."
+        )
+
+        action_type = "press"
+
+        next_action = {
+            "action": "press",
+            "target": "",
+            "value": "Enter"
+        }
+
+        target = ""
+        value = "Enter"
+
+    # --------------------------------------------------
     # 8. Validate action type
     # --------------------------------------------------
 
     if action_type not in [
         "fill",
         "click",
-        "navigate"
+        "navigate",
+        "press"
     ]:
 
         return {
@@ -249,6 +386,46 @@ def decide_action(state: AgentState):
             }
 
     # --------------------------------------------------
+    # 10.1 Press validation
+    #
+    # For now, only allow Enter/Return when the current
+    # plan step explicitly requests it.
+    # --------------------------------------------------
+
+    if action_type == "press":
+
+        if not _is_enter_step(
+            current_step
+        ):
+
+            print(
+                "Decide rejected unexpected key press "
+                f"for step: {current_step}"
+            )
+
+            return {
+                "next_action": _empty_action()
+            }
+
+        key_value = str(
+            value or target or ""
+        ).strip().lower()
+
+        if key_value not in [
+            "enter",
+            "return"
+        ]:
+
+            print(
+                "Decide rejected unsupported key press: "
+                f"{value or target}"
+            )
+
+            return {
+                "next_action": _empty_action()
+            }
+
+    # --------------------------------------------------
     # 11. Normalize navigate
     # --------------------------------------------------
 
@@ -283,6 +460,15 @@ def decide_action(state: AgentState):
         next_action["value"] = str(
             value
         )
+
+    # --------------------------------------------------
+    # 13.1 Normalize press
+    # --------------------------------------------------
+
+    if action_type == "press":
+
+        next_action["target"] = ""
+        next_action["value"] = "Enter"
 
     # --------------------------------------------------
     # 14. Preserve the observed element

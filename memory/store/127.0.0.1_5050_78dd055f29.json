@@ -1,0 +1,67 @@
+{
+  "app_path": "http://127.0.0.1:5050",
+  "pages": {
+    "http://127.0.0.1:5050": [
+      {
+        "name": "case_1",
+        "verdict": "HANDLED",
+        "reason": "The application gracefully handled the special characters search input by returning 'No laboratory equipment found' without crashing or causing unexpected behavior.",
+        "seen_at": "2026-09-08 11:00:35"
+      },
+      {
+        "name": "case_2",
+        "verdict": "HANDLED",
+        "reason": "Clicked the 'All categories' filter combobox (e5), successfully opening the dropdown menu showing all available categories.",
+        "seen_at": "2026-09-08 11:00:35"
+      },
+      {
+        "name": "case_3",
+        "verdict": "HANDLED",
+        "reason": "Clicked the Search button with default filters, resulting in the display of all laboratory equipment items as expected.",
+        "seen_at": "2026-09-08 11:00:35"
+      },
+      {
+        "name": "unknown",
+        "verdict": "INCONCLUSIVE",
+        "reason": "No VLM validation available.",
+        "seen_at": "2026-09-08 11:10:13"
+      },
+      {
+        "name": "case_4",
+        "verdict": "HANDLED",
+        "reason": "The application safely handled the SQL injection payload by treating it as a literal search term, resulting in 'No laboratory equipment found' without crashing or executing the query.",
+        "seen_at": "2026-09-08 11:17:11"
+      },
+      {
+        "name": "case_5",
+        "verdict": "HANDLED",
+        "reason": "Clicked the filter dropdown and search button successfully, returning the complete list of laboratory equipment under 'All categories'.",
+        "seen_at": "2026-09-08 11:17:11"
+      },
+      {
+        "name": "case_6",
+        "verdict": "HANDLED",
+        "reason": "The application correctly handled an extremely long search query by successfully performing the search and displaying a 'No laboratory equipment found' message without crashing or breaking the layout.",
+        "seen_at": "2026-09-08 11:17:11"
+      },
+      {
+        "name": "case_7",
+        "verdict": "HANDLED",
+        "reason": "Searching with special characters correctly handled with a 'No laboratory equipment found' message without crashing.",
+        "seen_at": "2026-09-08 11:28:10"
+      },
+      {
+        "name": "case_8",
+        "verdict": "HANDLED",
+        "reason": "The application successfully handled a very long string input in the search box without crashing or displaying errors, correctly showing a 'No laboratory equipment found' message.",
+        "seen_at": "2026-09-08 11:28:10"
+      },
+      {
+        "name": "case_9",
+        "verdict": "HANDLED",
+        "reason": "Clicked Filter by category and Search with default 'All categories' selected, displaying all laboratory results correctly.",
+        "seen_at": "2026-09-08 11:28:10"
+      }
+    ]
+  }
+}

@@ -1,4 +1,90 @@
+import base64
+import json
 import subprocess
+
+
+def _is_clipboard_write(args):
+    """
+    Return True when this Agent Browser command writes text
+    to the browser clipboard.
+    """
+
+    return (
+        isinstance(args, (list, tuple))
+        and len(args) >= 3
+        and str(args[0]) == "clipboard"
+        and str(args[1]) == "write"
+    )
+
+
+def _clipboard_batch_payload(text):
+    """
+    Build Agent Browser batch JSON for one clipboard write.
+
+    Using JSON over stdin avoids Windows CMD interpreting
+    characters such as &, |, <, >, quotes, %, and ^.
+    """
+
+    return json.dumps(
+        [
+            [
+                "clipboard",
+                "write",
+                str(text)
+            ]
+        ],
+        ensure_ascii=False
+    )
+
+
+def _clipboard_command_text(text):
+    """
+    Build the command stored in the generated test script.
+
+    Normal values keep the existing readable command:
+
+        agent-browser clipboard write "Aya"
+
+    Values that are unsafe to replay directly through Windows
+    CMD are encoded and replayed through Agent Browser's
+    batch --json stdin mode.
+
+    The browser operation is still performed by Agent Browser.
+    """
+
+    text = str(text)
+
+    cmd_sensitive_chars = (
+        '&|<>^()%!"\r\n'
+    )
+
+    needs_safe_transport = any(
+        char in text
+        for char in cmd_sensitive_chars
+    )
+
+    if not needs_safe_transport:
+
+        return (
+            f'agent-browser clipboard write "{text}"'
+        )
+
+    payload = _clipboard_batch_payload(
+        text
+    )
+
+    payload_b64 = base64.b64encode(
+        payload.encode("utf-8")
+    ).decode("ascii")
+
+    return (
+        'powershell -NoProfile -NonInteractive -Command '
+        '"[Text.Encoding]::UTF8.GetString('
+        "[Convert]::FromBase64String("
+        f"'{payload_b64}'"
+        '))" '
+        '| agent-browser batch --json'
+    )
 
 
 def run_command(args, command_text=None):
@@ -16,30 +102,69 @@ def run_command(args, command_text=None):
     try:
 
         # --------------------------------------------------
-        # Windows-safe command construction
+        # Clipboard write special handling
         #
-        # On Windows, agent-browser is commonly installed as
-        # a .cmd launcher. Passing shell=True together with a
-        # Python argument list can cause the subcommands/args
-        # to be parsed incorrectly.
+        # Arbitrary exploratory input may contain Windows CMD
+        # metacharacters such as:
         #
-        # Build one properly quoted command string instead.
+        #     & | < > " % ^
+        #
+        # Passing those values through shell=True as part of
+        # one command string can change their meaning.
+        #
+        # Agent Browser supports batch --json via stdin, so
+        # clipboard text is sent as JSON data instead of being
+        # parsed by CMD.
+        #
+        # This changes only clipboard-write execution.
+        # All other Agent Browser commands keep the existing
+        # Windows-safe command construction below.
         # --------------------------------------------------
 
-        full_command = subprocess.list2cmdline(
-            ["agent-browser"] + [
-                str(arg)
-                for arg in args
-            ]
-        )
+        if _is_clipboard_write(
+            args
+        ):
 
-        result = subprocess.run(
-            full_command,
-            capture_output=True,
-            text=True,
-            shell=True,
-            timeout=15
-        )
+            payload = _clipboard_batch_payload(
+                args[2]
+            )
+
+            result = subprocess.run(
+                "agent-browser batch --json",
+                input=payload,
+                capture_output=True,
+                text=True,
+                shell=True,
+                timeout=15
+            )
+
+        else:
+
+            # --------------------------------------------------
+            # Windows-safe command construction
+            #
+            # On Windows, agent-browser is commonly installed as
+            # a .cmd launcher. Passing shell=True together with a
+            # Python argument list can cause the subcommands/args
+            # to be parsed incorrectly.
+            #
+            # Build one properly quoted command string instead.
+            # --------------------------------------------------
+
+            full_command = subprocess.list2cmdline(
+                ["agent-browser"] + [
+                    str(arg)
+                    for arg in args
+                ]
+            )
+
+            result = subprocess.run(
+                full_command,
+                capture_output=True,
+                text=True,
+                shell=True,
+                timeout=15
+            )
 
         if result.returncode == 0:
 
@@ -494,6 +619,10 @@ def fill(ref, text):
 
     # --------------------------------------------------
     # 7. Write value to clipboard
+    #
+    # run_command() sends clipboard text through
+    # Agent Browser batch --json stdin so exploratory
+    # special characters cannot be interpreted by CMD.
     # --------------------------------------------------
 
     clipboard_result = run_command(
@@ -502,7 +631,9 @@ def fill(ref, text):
             "write",
             text
         ],
-        f'agent-browser clipboard write "{text}"'
+        _clipboard_command_text(
+            text
+        )
     )
 
     if not clipboard_result.get("success"):

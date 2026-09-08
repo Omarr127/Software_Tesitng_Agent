@@ -417,6 +417,50 @@ Refs may remain in internal state for debugging and traceability, but they are n
 
 Navigation and validation commands may remain as their supported Agent Browser commands.
 
+### Runtime Agent Browser Validation
+
+The final generated Scenario 1 script must end with a **runtime validation command executed by Agent Browser**.
+
+The validation must be generated specifically for the current test. It must not use one fixed validation rule for every application or every requirement.
+
+Use this structure:
+
+```text
+agent-browser eval "(() => {
+    if (RUNTIME_CONDITION) {
+        return 'PASS';
+    } else {
+        return 'FAIL';
+    }
+})()"
+```
+
+Requirements:
+
+- the JavaScript must contain an explicit `if / else`,
+- the condition must be derived from the current requirement, testing intent, executed actions, and observed final application evidence,
+- the condition must inspect the browser state at runtime,
+- the validation must be side-effect-free,
+- do not click, fill, submit, navigate, mutate application state, or call application APIs during validation,
+- do not use Agent Browser refs such as `@e2` in the validation,
+- do not invent application-specific CSS/XPath selectors,
+- prefer semantic runtime signals that are grounded in observed evidence, such as:
+  - current URL or pathname,
+  - form validity,
+  - visible status or alert regions,
+  - visible confirmation/error state,
+  - element enabled/disabled state,
+  - DOM state that was actually observed during execution,
+- do not use one universal hardcoded success message,
+- do not invent application-specific selectors such as `article`, `input[type=...]`, `.result`, `#success`, product-card classes, or other guessed page structures,
+- prefer selector-free runtime state such as `document.body.innerText`, `location.href`, `location.pathname`, and native form validity,
+- if a selector is genuinely needed, use only generic semantic selectors such as `:invalid`, `[role="status"]`, or `[role="alert"]`,
+- exact text may be checked only when that exact text was actually observed and is meaningful evidence for the current requirement,
+- return `PASS` only when the runtime browser state satisfies the expected behavior,
+- otherwise return `FAIL`.
+
+The validation condition is generated intelligently for the current test, while Agent Browser performs the actual runtime check.
+
 ---
 
 ## Tool Usage Rules
@@ -571,6 +615,8 @@ The final script should reflect:
 4. coordinate-based physical mouse interaction,
 5. clipboard-based text entry for fill actions,
 6. and final validation behavior.
+
+The final Scenario 1 script must include the dynamically generated `agent-browser eval` runtime validation command with JavaScript `if / else` that returns `PASS` or `FAIL`.
 
 For click/fill actions, do not output static refs, CSS selectors, or XPath as final locators.
 

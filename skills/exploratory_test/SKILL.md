@@ -304,6 +304,58 @@ agent-browser fill @e2 "VALUE"
 
 Refs may exist internally for observation and execution targeting, but the final report must preserve the real coordinate/mouse/clipboard commands that were actually executed.
 
+### Runtime Agent Browser Validation Per Case
+
+After the actual Agent Browser command sequence for each exploratory case, the generated report must include a **case-specific runtime validation command executed by Agent Browser**.
+
+The validation must be generated dynamically from:
+
+- that case's goal,
+- that case's executed actions,
+- the observed resulting browser state,
+- and the evidence used to judge that case.
+
+Use an Agent Browser `eval` command whose JavaScript contains explicit conditional logic:
+
+```text
+agent-browser eval "(() => {
+    if (RUNTIME_HANDLED_CONDITION) {
+        return 'HANDLED';
+    } else if (RUNTIME_BUG_CONDITION) {
+        return 'BUG FOUND';
+    } else {
+        return 'INCONCLUSIVE';
+    }
+})()"
+```
+
+Requirements:
+
+- generate a different validation condition when different cases require different evidence,
+- do not use one fixed condition for every exploratory case,
+- the validation must inspect browser state at runtime,
+- the validation must be side-effect-free,
+- do not click, fill, submit, navigate, mutate application state, or call application APIs during validation,
+- do not use temporary Agent Browser refs in the final validation,
+- do not invent application-specific CSS/XPath selectors,
+- prefer semantic runtime signals grounded in actual observation, such as:
+  - current URL or pathname,
+  - form validity,
+  - visible status or alert regions,
+  - visible error/confirmation state,
+  - enabled/disabled state,
+  - DOM state actually observed for that case,
+- do not rely on one universal hardcoded message,
+- do not invent application-specific selectors such as `article`, `input[type=...]`, `.result`, `#success`, product-card classes, or other guessed page structures,
+- prefer selector-free runtime state such as `document.body.innerText`, `location.href`, `location.pathname`, and native form validity,
+- if a selector is genuinely needed, use only generic semantic selectors such as `:invalid`, `[role="status"]`, or `[role="alert"]`,
+- exact text may be checked only when that exact text was actually observed and is meaningful evidence for the current case,
+- return `HANDLED` only when runtime evidence shows correct handling,
+- return `BUG FOUND` only when runtime evidence clearly shows incorrect behavior,
+- return `INCONCLUSIVE` when the runtime evidence is insufficient.
+
+The purpose is to make the final exploratory script validate each case at runtime using Agent Browser, while keeping the validation logic intelligent and case-specific.
+
 Do not fabricate a bug to appear useful.
 
 Do not mark a case `HANDLED` without observed evidence.
