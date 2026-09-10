@@ -15,8 +15,12 @@ _SKILLS_DIR = Path(__file__).resolve().parent
 
 _SKILL_BY_TASK_MODE = {
     "new_test": "e2e_test",
+<<<<<<< HEAD
     "maintenance": "maintenance_test",
     "explore": "exploratory_test"
+=======
+    "maintenance": "maintenance_test"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 }
 
 
@@ -121,6 +125,7 @@ _NODE_CONTEXT = {
             "Completion Criteria",
             "Output Requirements"
         ]
+<<<<<<< HEAD
     },
 
 
@@ -160,6 +165,9 @@ _NODE_CONTEXT = {
         ]
     }
 
+=======
+    }
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 }
 
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import base64
 import json
 import subprocess
@@ -89,6 +90,12 @@ def _clipboard_command_text(text):
 
 def run_command(args, command_text=None):
 
+=======
+import subprocess
+
+
+def run_command(args, command_text=None):
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Execute Agent Browser CLI command.
 
@@ -101,6 +108,7 @@ def run_command(args, command_text=None):
 
     try:
 
+<<<<<<< HEAD
         # --------------------------------------------------
         # Clipboard write special handling
         #
@@ -165,6 +173,15 @@ def run_command(args, command_text=None):
                 shell=True,
                 timeout=15
             )
+=======
+        result = subprocess.run(
+            ["agent-browser"] + args,
+            capture_output=True,
+            text=True,
+            shell=True,
+            timeout=15
+        )
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
         if result.returncode == 0:
 
@@ -195,7 +212,10 @@ def run_command(args, command_text=None):
 
 
 def open_app(url):
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Open application using Agent Browser.
     """
@@ -207,7 +227,10 @@ def open_app(url):
 
 
 def snapshot():
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Get current page accessibility snapshot.
     """
@@ -218,8 +241,34 @@ def snapshot():
     )
 
 
+<<<<<<< HEAD
 def get_box(ref):
 
+=======
+def click(ref):
+    """
+    Click an element using its Agent Browser reference.
+    """
+
+    return run_command(
+        ["click", ref],
+        f"agent-browser click {ref}"
+    )
+
+
+def fill(ref, text):
+    """
+    Fill input field.
+    """
+
+    return run_command(
+        ["fill", ref, text],
+        f'agent-browser fill {ref} "{text}"'
+    )
+
+
+def get_box(ref):
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Get the bounding box of an element.
 
@@ -246,6 +295,7 @@ def get_box(ref):
     )
 
 
+<<<<<<< HEAD
 def press(key):
 
     """
@@ -683,6 +733,9 @@ def fill(ref, text):
 
 def navigate(url):
 
+=======
+def navigate(url):
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Navigate to another URL.
     """
@@ -694,7 +747,10 @@ def navigate(url):
 
 
 def screenshot(filename="screenshot.png"):
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
     Capture screenshot.
     """
@@ -705,6 +761,7 @@ def screenshot(filename="screenshot.png"):
     )
 
 
+<<<<<<< HEAD
 def eval_js(script: str):
 
     """
@@ -755,6 +812,8 @@ def list_page_links():
     )
 
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 if __name__ == "__main__":
 
     print("===== OPEN =====")
@@ -806,4 +865,8 @@ if __name__ == "__main__":
         )
     )
 
+<<<<<<< HEAD
     print("===== DONE =====")
+=======
+    print("===== DONE =====")
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

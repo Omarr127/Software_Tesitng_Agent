@@ -44,13 +44,18 @@ def understand_task(state: AgentState):
             ""
         )
 
+<<<<<<< HEAD
     elif task_mode == "maintenance":
+=======
+    else:
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
         task_input = state.get(
             "existing_script",
             ""
         )
 
+<<<<<<< HEAD
     else:
 
         # explore: no requirement or script was given — tell the
@@ -61,6 +66,8 @@ def understand_task(state: AgentState):
             "probing, following the exploratory testing skill."
         )
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # 4. Build the prompt
     # --------------------------------------------------

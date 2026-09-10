@@ -5,6 +5,7 @@ from skills.skill_loader import load_context_for_node
 from model import invoke_llm
 from prompts.plan_prompt import build_plan_prompt
 from utils.json_utils import clean_json_response
+<<<<<<< HEAD
 from memory import memory_store
 
 
@@ -118,6 +119,80 @@ def _parse_plan(
         multiple consecutive actions can belong
         to the same exploratory case.
     """
+=======
+
+
+def create_plan(state: AgentState):
+    """
+    Create an ordered, atomic testing plan.
+
+    Each plan step should represent ONE logical browser action
+    so that the LangGraph execution model remains:
+
+        Observe
+            ↓
+        Decide ONE action
+            ↓
+        Execute
+            ↓
+        Next plan step
+    """
+
+    # --------------------------------------------------
+    # 1. Get task mode
+    # --------------------------------------------------
+
+    task_mode = state.get(
+        "task_mode",
+        "new_test"
+    )
+
+    # --------------------------------------------------
+    # 2. Load only Plan-specific skill context
+    # --------------------------------------------------
+
+    context = load_context_for_node(
+        task_mode,
+        "plan"
+    )
+
+    # --------------------------------------------------
+    # 3. Build Plan prompt
+    # --------------------------------------------------
+
+    prompt = build_plan_prompt(
+        context=context,
+        task_mode=task_mode,
+        test_intent=state.get(
+            "test_intent",
+            ""
+        ),
+        existing_script=state.get(
+            "existing_script",
+            ""
+        )
+    )
+
+    # --------------------------------------------------
+    # 4. Ask Gemini to create the plan
+    # --------------------------------------------------
+
+    response = invoke_llm(
+        prompt
+    )
+
+    # --------------------------------------------------
+    # 5. Clean model response
+    # --------------------------------------------------
+
+    response = clean_json_response(
+        response
+    )
+
+    # --------------------------------------------------
+    # 6. Parse plan
+    # --------------------------------------------------
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
     try:
 
@@ -131,6 +206,7 @@ def _parse_plan(
             "Plan node returned invalid JSON:"
         )
 
+<<<<<<< HEAD
         print(
             response
         )
@@ -147,6 +223,21 @@ def _parse_plan(
         for index, step in enumerate(
             plan
         ):
+=======
+        print(response)
+
+        plan = []
+
+    # --------------------------------------------------
+    # 7. Validate plan
+    # --------------------------------------------------
+
+    valid_plan = []
+
+    if isinstance(plan, list):
+
+        for step in plan:
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
             if not isinstance(
                 step,
@@ -169,6 +260,7 @@ def _parse_plan(
             if not goal:
                 continue
 
+<<<<<<< HEAD
             # --------------------------------------------------
             # Scenario 2:
             #
@@ -511,6 +603,14 @@ required USER INTERACTION, not a verification step.
             "======================================\n"
         )
 
+=======
+            valid_plan.append(
+                {
+                    "goal": goal
+                }
+            )
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # 8. Select first step
     # --------------------------------------------------

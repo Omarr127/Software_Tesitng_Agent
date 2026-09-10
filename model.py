@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 import re
+=======
+from google import genai
+from PIL import Image
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 import time
 import inspect
 import os
 
+<<<<<<< HEAD
 from PIL import Image
 
 from metrics.tracker import metrics_logger
@@ -37,6 +44,15 @@ else:
 # ==================================================
 # Per-node detection (BASE's existing approach)
 # ==================================================
+=======
+from metrics.tracker import metrics_logger
+
+
+client = genai.Client()
+
+MODEL_NAME = "gemini-3.5-flash-lite"
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 def _detect_node_name() -> str:
     """
@@ -51,12 +67,18 @@ def _detect_node_name() -> str:
         "create_plan": "plan",
         "analyze_ui_with_vlm": "observe",
         "observe_ui": "observe",
+<<<<<<< HEAD
         "_validate_case_with_vlm": "observe",
         "_validate_final_result": "generate",
         "decide_action": "decide",
         "reflect_replan": "reflect",
         "verify_behavior": "verify",
         "generate_output": "generate"
+=======
+        "decide_action": "decide",
+        "reflect_replan": "reflect",
+        "verify_behavior": "verify"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     }
 
     for frame_info in inspect.stack():
@@ -68,6 +90,7 @@ def _detect_node_name() -> str:
     return "unknown"
 
 
+<<<<<<< HEAD
 # ==================================================
 # Gemini rate limiting (SOURCE's approach)
 # ==================================================
@@ -182,12 +205,18 @@ def invoke_llm(prompt: str) -> str:
     """
     Send a text prompt to the active model backend
     and record detailed metrics.
+=======
+def invoke_llm(prompt: str) -> str:
+    """
+    Send a text prompt to Gemini and record detailed metrics.
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
 
     node_name = _detect_node_name()
 
     start_time = time.time()
 
+<<<<<<< HEAD
     if USE_GEMINI:
         # ----- Gemini path -----
         response = _generate_with_retry(prompt)
@@ -228,6 +257,37 @@ def invoke_llm(prompt: str) -> str:
 
         result_text = response.message.content
 
+=======
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt
+    )
+
+    duration = time.time() - start_time
+
+    # --------------------------------------------------
+    # Gemini token usage
+    # --------------------------------------------------
+
+    usage = response.usage_metadata
+
+    prompt_tokens = 0
+    output_tokens = 0
+
+    if usage:
+        prompt_tokens = getattr(
+            usage,
+            "prompt_token_count",
+            0
+        )
+
+        output_tokens = getattr(
+            usage,
+            "candidates_token_count",
+            0
+        )
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # Log detailed node metrics
     # --------------------------------------------------
@@ -243,6 +303,7 @@ def invoke_llm(prompt: str) -> str:
         prompt_words=len(prompt.split())
     )
 
+<<<<<<< HEAD
     return result_text
 
 
@@ -253,12 +314,23 @@ def invoke_llm(prompt: str) -> str:
 def invoke_vlm(prompt: str, image_path: str) -> str:
     """
     Send a prompt + screenshot to the active model backend
+=======
+    return response.text
+
+
+def invoke_vlm(prompt: str, image_path: str) -> str:
+    """
+    Send a prompt + screenshot to Gemini VLM
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     and record detailed metrics.
     """
 
     node_name = _detect_node_name()
 
+<<<<<<< HEAD
     # Validate image opens correctly
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     image = Image.open(image_path)
 
     # --------------------------------------------------
@@ -274,6 +346,7 @@ def invoke_vlm(prompt: str, image_path: str) -> str:
 
     start_time = time.time()
 
+<<<<<<< HEAD
     if USE_GEMINI:
         # ----- Gemini path -----
         response = _generate_with_retry([
@@ -319,6 +392,40 @@ def invoke_vlm(prompt: str, image_path: str) -> str:
 
         result_text = response.message.content
 
+=======
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=[
+            prompt,
+            image
+        ]
+    )
+
+    duration = time.time() - start_time
+
+    # --------------------------------------------------
+    # Gemini token usage
+    # --------------------------------------------------
+
+    usage = response.usage_metadata
+
+    prompt_tokens = 0
+    output_tokens = 0
+
+    if usage:
+        prompt_tokens = getattr(
+            usage,
+            "prompt_token_count",
+            0
+        )
+
+        output_tokens = getattr(
+            usage,
+            "candidates_token_count",
+            0
+        )
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # Log detailed node metrics
     # --------------------------------------------------
@@ -335,4 +442,8 @@ def invoke_vlm(prompt: str, image_path: str) -> str:
         image_size_kb=image_size_kb
     )
 
+<<<<<<< HEAD
     return result_text
+=======
+    return response.text
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

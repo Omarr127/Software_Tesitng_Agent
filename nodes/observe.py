@@ -1,12 +1,19 @@
 import json
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 from state import AgentState
 from tools.browser_tools import (
     snapshot,
     screenshot,
+<<<<<<< HEAD
     get_box,
     open_app
+=======
+    get_box
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 )
 from skills.skill_loader import load_context_for_node
 from model import invoke_vlm
@@ -15,6 +22,7 @@ from utils.json_utils import clean_json_response
 from metrics.tracker import metrics_logger
 
 
+<<<<<<< HEAD
 # --------------------------------------------------
 # Token optimization helpers
 #
@@ -551,6 +559,8 @@ Rules:
 """.strip()
 
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 def _parse_box_output(output):
     """
     Parse the bounding box returned by Agent Browser.
@@ -603,8 +613,23 @@ def _parse_box_output(output):
 
     # --------------------------------------------------
     # 2. Try to extract values from text
+<<<<<<< HEAD
     # --------------------------------------------------
 
+=======
+    #
+    # This is a fallback in case Agent Browser
+    # returns something such as:
+    #
+    # x: 120
+    # y: 180
+    # width: 300
+    # height: 40
+    # --------------------------------------------------
+
+    import re
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     patterns = {
         "x": r"x\s*[:=]\s*(-?\d+(?:\.\d+)?)",
         "y": r"y\s*[:=]\s*(-?\d+(?:\.\d+)?)",
@@ -648,14 +673,25 @@ def _attach_element_boxes(
 ):
     """
     Get the real browser bounding box for every
+<<<<<<< HEAD
     selected element.
 
     The selector chooses the relevant element.
+=======
+    VLM-selected element.
+
+    The VLM identifies the relevant element.
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
     Agent Browser determines its actual location.
 
     This keeps coordinate detection out of the
+<<<<<<< HEAD
     model prompt.
+=======
+    VLM prompt and therefore does not increase
+    VLM token usage.
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
 
     elements_with_boxes = []
@@ -675,6 +711,13 @@ def _attach_element_boxes(
         if not ref:
             continue
 
+<<<<<<< HEAD
+=======
+        # --------------------------------------------------
+        # Get actual browser bounding box
+        # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         box_result = get_box(
             ref
         )
@@ -692,6 +735,13 @@ def _attach_element_boxes(
                 )
             )
 
+<<<<<<< HEAD
+=======
+        # --------------------------------------------------
+        # Preserve original element information
+        # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         updated_element = {
             "label": element.get(
                 "label",
@@ -712,6 +762,7 @@ def _attach_element_boxes(
     return elements_with_boxes
 
 
+<<<<<<< HEAD
 def _validate_case_with_vlm(
     case_id,
     case_actions,
@@ -888,6 +939,8 @@ or:
         }
 
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 def analyze_ui_with_vlm(
     task_mode,
     current_step,
@@ -898,6 +951,7 @@ def analyze_ui_with_vlm(
     """
     Analyze the current UI using the VLM.
 
+<<<<<<< HEAD
     Token optimization:
     - Full snapshot remains available internally.
     - The VLM receives a compact observation snapshot.
@@ -905,6 +959,26 @@ def analyze_ui_with_vlm(
     - Maintenance keeps its richer original context.
     """
 
+=======
+    The VLM receives only the context required for UI observation:
+    - the node-specific observation instructions
+    - the task mode
+    - the current testing step
+    - the existing script when needed for maintenance
+    - the current browser snapshot
+    - the screenshot
+
+    The VLM identifies relevant elements.
+
+    Bounding boxes are obtained separately from
+    Agent Browser after the VLM response.
+    """
+
+    # --------------------------------------------------
+    # 1. Make sure screenshot exists
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     if not screenshot_path:
 
         print(
@@ -913,6 +987,13 @@ def analyze_ui_with_vlm(
 
         return []
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 2. Load only the Observe-specific skill context
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     try:
 
         context = load_context_for_node(
@@ -928,6 +1009,7 @@ def analyze_ui_with_vlm(
 
         return []
 
+<<<<<<< HEAD
     model_context = (
         _compact_observe_context(
             context,
@@ -951,6 +1033,24 @@ def analyze_ui_with_vlm(
         model_snapshot
     )
 
+=======
+    # --------------------------------------------------
+    # 3. Build VLM prompt
+    # --------------------------------------------------
+
+    prompt = build_observe_prompt(
+        context,
+        task_mode,
+        current_step,
+        existing_script,
+        snapshot_text
+    )
+
+    # --------------------------------------------------
+    # 4. Debug information
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     print(
         "\n========== OBSERVE DEBUG =========="
     )
@@ -975,12 +1075,16 @@ def analyze_ui_with_vlm(
         "\nBrowser snapshot:"
     )
 
+<<<<<<< HEAD
     # Keep FULL snapshot in local debug output.
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     print(
         snapshot_text
     )
 
     print(
+<<<<<<< HEAD
         "\nObserve model snapshot:"
     )
 
@@ -989,11 +1093,17 @@ def analyze_ui_with_vlm(
     )
 
     print(
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         "\nObserve context loaded:"
     )
 
     print(
+<<<<<<< HEAD
         model_context
+=======
+        context
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     )
 
     print(
@@ -1008,6 +1118,13 @@ def analyze_ui_with_vlm(
         "===================================\n"
     )
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 5. Send prompt + screenshot to Gemini VLM
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     try:
 
         response = invoke_vlm(
@@ -1039,6 +1156,13 @@ def analyze_ui_with_vlm(
 
         return []
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 6. Parse VLM response
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     try:
 
         target_elements = json.loads(
@@ -1065,6 +1189,13 @@ def analyze_ui_with_vlm(
 
         return []
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 7. Validate returned structure
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     if not isinstance(
         target_elements,
         list
@@ -1081,6 +1212,13 @@ def analyze_ui_with_vlm(
 
         return []
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 8. Validate individual elements
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     valid_elements = []
 
     for element in target_elements:
@@ -1112,10 +1250,30 @@ def analyze_ui_with_vlm(
             }
         )
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 9. Get real browser coordinates
+    #
+    # IMPORTANT:
+    #
+    # The VLM does NOT generate these coordinates.
+    #
+    # Agent Browser gets them directly.
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     valid_elements = _attach_element_boxes(
         valid_elements
     )
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 10. Show final observation result
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     print(
         "\n========== OBSERVE RESULT =========="
     )
@@ -1138,6 +1296,7 @@ def analyze_ui_with_vlm(
 def observe_ui(state: AgentState):
     """
     Observe and analyze the current application UI.
+<<<<<<< HEAD
 
     Optimization strategy:
     - Case-boundary VLM validation remains unchanged in behavior.
@@ -1284,6 +1443,11 @@ def observe_ui(state: AgentState):
                     )
 
     # --------------------------------------------------
+=======
+    """
+
+    # --------------------------------------------------
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # 1. Get structured browser information
     # --------------------------------------------------
 
@@ -1304,10 +1468,14 @@ def observe_ui(state: AgentState):
 
         return {
             "current_screen": None,
+<<<<<<< HEAD
             "target_elements": [],
             "case_validations": (
                 case_validations
             )
+=======
+            "target_elements": []
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         }
 
     snapshot_text = snapshot_result.get(
@@ -1315,6 +1483,13 @@ def observe_ui(state: AgentState):
         ""
     )
 
+<<<<<<< HEAD
+=======
+    # --------------------------------------------------
+    # 1.1 Validate snapshot content
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     if not snapshot_text.strip():
 
         print(
@@ -1322,6 +1497,7 @@ def observe_ui(state: AgentState):
         )
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 2. FAST PATH:
     #
     # For simple Scenario 1/3 steps, use the structured
@@ -1392,6 +1568,12 @@ def observe_ui(state: AgentState):
     screenshot_path = (
         "current_screen.png"
     )
+=======
+    # 2. Capture current browser screen
+    # --------------------------------------------------
+
+    screenshot_path = "current_screen.png"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
     screenshot_result = screenshot(
         screenshot_path
@@ -1412,19 +1594,44 @@ def observe_ui(state: AgentState):
 
         return {
             "current_screen": None,
+<<<<<<< HEAD
             "target_elements": [],
             "case_validations": (
                 case_validations
             )
         }
 
+=======
+            "target_elements": []
+        }
+
+    # --------------------------------------------------
+    # 2.1 Log screenshot metrics
+    # --------------------------------------------------
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     metrics_logger.log_screenshot(
         screenshot_path
     )
 
+<<<<<<< HEAD
     target_elements = analyze_ui_with_vlm(
         task_mode=task_mode,
         current_step=current_step,
+=======
+    # --------------------------------------------------
+    # 3. Analyze UI using VLM
+    # --------------------------------------------------
+
+    target_elements = analyze_ui_with_vlm(
+        task_mode=state.get(
+            "task_mode",
+            "new_test"
+        ),
+        current_step=state.get(
+            "current_step"
+        ),
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         existing_script=state.get(
             "existing_script",
             ""
@@ -1433,8 +1640,19 @@ def observe_ui(state: AgentState):
         screenshot_path=screenshot_path
     )
 
+<<<<<<< HEAD
     return {
         "current_screen": screenshot_path,
         "target_elements": target_elements,
         "case_validations": case_validations
     }
+=======
+    # --------------------------------------------------
+    # 4. Keep useful UI information in state
+    # --------------------------------------------------
+
+    return {
+        "current_screen": screenshot_path,
+        "target_elements": target_elements
+    }
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

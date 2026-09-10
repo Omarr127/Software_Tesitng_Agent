@@ -1,6 +1,7 @@
 from state import AgentState
 
 
+<<<<<<< HEAD
 def route_needs_plan(state: AgentState):
     """
     Route after observe/discover_pages.
@@ -32,6 +33,8 @@ def route_needs_plan(state: AgentState):
     return "needs_plan"
 
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 def route_action_success(state: AgentState):
     """
     Route after Execute Action.
@@ -67,6 +70,7 @@ def route_retry(state: AgentState):
 
 def route_task_mode(state: AgentState):
     """
+<<<<<<< HEAD
     Route after all steps of the current plan are complete.
 
     - "maintenance" goes to verify (comparing actual vs expected
@@ -105,6 +109,15 @@ def route_has_next_page(state: AgentState):
         return "continue"
 
     return "generate"
+=======
+    Route after all steps are complete.
+    """
+
+    if state["task_mode"] == "new_test":
+        return "new_test"
+
+    return "maintenance"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 
 def route_repair(state: AgentState):

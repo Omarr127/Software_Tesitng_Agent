@@ -9,8 +9,12 @@ class AgentState(TypedDict, total=False):
 
     task_mode: Literal[
         "new_test",
+<<<<<<< HEAD
         "maintenance",
         "explore"
+=======
+        "maintenance"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     ]
 
 
@@ -37,6 +41,7 @@ class AgentState(TypedDict, total=False):
 
 
     # ==================================================
+<<<<<<< HEAD
     # Scenario 3 (explore) — grouping steps into
     # independent cases, so a case can span more than
     # one browser action (e.g. fill an invalid value,
@@ -76,6 +81,8 @@ class AgentState(TypedDict, total=False):
 
 
     # ==================================================
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # Observe + Analyze UI
     # ==================================================
 
@@ -138,10 +145,13 @@ class AgentState(TypedDict, total=False):
     # Repair Needed?
     repair_needed: bool
 
+<<<<<<< HEAD
     repair_attempts: int
 
     repair_retries_available: bool
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
     # ==================================================
     # Generate Output

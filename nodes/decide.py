@@ -22,6 +22,7 @@ def _empty_action():
     }
 
 
+<<<<<<< HEAD
 def _is_enter_step(current_step) -> bool:
     """
     Return True when the current plan step explicitly
@@ -61,6 +62,8 @@ def _is_enter_step(current_step) -> bool:
     )
 
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 def decide_action(state: AgentState):
     """
     Decide the next concrete browser action for the current step.
@@ -68,6 +71,7 @@ def decide_action(state: AgentState):
     Important safety rule:
     Decide may only act on information discovered by Observe.
     It must never invent a browser reference or URL.
+<<<<<<< HEAD
 
     Supported actions:
 
@@ -78,6 +82,8 @@ def decide_action(state: AgentState):
 
     The press action is currently used for an explicitly
     requested Enter/Return step.
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
 
     task_mode = state.get(
@@ -102,6 +108,7 @@ def decide_action(state: AgentState):
     # --------------------------------------------------
     # 1. Safety check
     #
+<<<<<<< HEAD
     # If Observe found nothing, Decide normally has no
     # valid UI target to act on.
     #
@@ -116,6 +123,15 @@ def decide_action(state: AgentState):
             current_step
         )
     ):
+=======
+    # If Observe found nothing, Decide has no valid
+    # UI target to act on.
+    #
+    # Do NOT ask the LLM to guess.
+    # --------------------------------------------------
+
+    if not target_elements:
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
         print(
             "Decide: no target elements were observed."
@@ -147,6 +163,7 @@ def decide_action(state: AgentState):
     )
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 3.1 Add a small execution rule for Enter
     #
     # This keeps the existing prompt architecture intact
@@ -181,6 +198,9 @@ Do NOT represent Enter as:
 
     # --------------------------------------------------
     # 4. Send prompt to model
+=======
+    # 4. Send prompt to Gemini
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
 
     try:
@@ -255,6 +275,7 @@ Do NOT represent Enter as:
     )
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 7.1 Backward-compatible Enter normalization
     #
     # Smaller models may still return:
@@ -302,14 +323,20 @@ Do NOT represent Enter as:
         value = "Enter"
 
     # --------------------------------------------------
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # 8. Validate action type
     # --------------------------------------------------
 
     if action_type not in [
         "fill",
         "click",
+<<<<<<< HEAD
         "navigate",
         "press"
+=======
+        "navigate"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     ]:
 
         return {
@@ -386,6 +413,7 @@ Do NOT represent Enter as:
             }
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 10.1 Press validation
     #
     # For now, only allow Enter/Return when the current
@@ -426,6 +454,8 @@ Do NOT represent Enter as:
             }
 
     # --------------------------------------------------
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # 11. Normalize navigate
     # --------------------------------------------------
 
@@ -462,6 +492,7 @@ Do NOT represent Enter as:
         )
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 13.1 Normalize press
     # --------------------------------------------------
 
@@ -471,6 +502,8 @@ Do NOT represent Enter as:
         next_action["value"] = "Enter"
 
     # --------------------------------------------------
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # 14. Preserve the observed element
     #
     # IMPORTANT:
@@ -513,4 +546,8 @@ Do NOT represent Enter as:
 
     return {
         "next_action": next_action
+<<<<<<< HEAD
     }
+=======
+    }
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

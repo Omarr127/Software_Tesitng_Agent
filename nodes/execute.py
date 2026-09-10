@@ -2,9 +2,13 @@ from state import AgentState
 from tools.browser_tools import (
     click,
     fill,
+<<<<<<< HEAD
     navigate,
     press,
     snapshot
+=======
+    navigate
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 )
 
 
@@ -17,10 +21,14 @@ def execute_action(state: AgentState):
     - Store successful actions.
     - Preserve observed element information,
       including dynamic bounding boxes.
+<<<<<<< HEAD
     - Store the real Agent Browser CLI command sequence
       used for each successful action.
     - Tag actions with case_id / page_url for explore mode.
     - Capture post-action page state for explore mode.
+=======
+    - Store Agent Browser CLI commands.
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
     This node does not use an LLM.
     """
@@ -34,12 +42,15 @@ def execute_action(state: AgentState):
         {}
     )
 
+<<<<<<< HEAD
     current_step = state.get(
         "current_step"
     ) or {}
 
     case_id = current_step.get("case_id")
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     action_type = action.get(
         "action"
     )
@@ -75,12 +86,15 @@ def execute_action(state: AgentState):
             value
         )
 
+<<<<<<< HEAD
     elif action_type == "press":
 
         result = press(
             value
         )
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     else:
 
         result = {
@@ -99,6 +113,7 @@ def execute_action(state: AgentState):
         False
     )
 
+<<<<<<< HEAD
     # Keep the exact command sequence returned by the
     # browser tool. For click/fill this is now the real
     # coordinate-based mouse/clipboard sequence.
@@ -107,6 +122,8 @@ def execute_action(state: AgentState):
         "command"
     )
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # 4. Get previous executed actions
     # --------------------------------------------------
@@ -125,6 +142,7 @@ def execute_action(state: AgentState):
         executed_action = action.copy()
 
         # --------------------------------------------------
+<<<<<<< HEAD
         # Store the REAL command sequence that was executed.
         #
         # Example for fill:
@@ -161,6 +179,8 @@ def execute_action(state: AgentState):
         )
 
         # --------------------------------------------------
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         # Attach the observed element.
         #
         # This preserves:
@@ -170,9 +190,25 @@ def execute_action(state: AgentState):
         # ref
         # box
         #
+<<<<<<< HEAD
         # The ref/box remain useful as INTERNAL evidence
         # and debugging information. They are not used as
         # the final generated click/fill commands.
+=======
+        # Example:
+        #
+        # {
+        #     "label": "Name",
+        #     "type": "textbox",
+        #     "ref": "e2",
+        #     "box": {
+        #         "x": 381,
+        #         "y": 197.4375,
+        #         "width": 500,
+        #         "height": 42
+        #     }
+        # }
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         # --------------------------------------------------
 
         if action_type in (
@@ -201,6 +237,7 @@ def execute_action(state: AgentState):
 
                     break
 
+<<<<<<< HEAD
         # --------------------------------------------------
         # Capture the resulting page state as evidence.
         # Without this, later steps (like generate) only
@@ -219,6 +256,8 @@ def execute_action(state: AgentState):
         else:
             executed_action["resulting_state"] = None
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         executed_actions.append(
             executed_action
         )
@@ -232,6 +271,13 @@ def execute_action(state: AgentState):
         []
     ).copy()
 
+<<<<<<< HEAD
+=======
+    command = result.get(
+        "command"
+    )
+
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     if success and command:
 
         browser_commands.append(
@@ -259,6 +305,7 @@ def execute_action(state: AgentState):
 
         "executed_actions": executed_actions,
 
+<<<<<<< HEAD
         "browser_commands": browser_commands,
 
         # Record which case this attempt belonged to
@@ -272,3 +319,8 @@ def execute_action(state: AgentState):
         "last_case_id": case_id
 
     }
+=======
+        "browser_commands": browser_commands
+
+    }
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

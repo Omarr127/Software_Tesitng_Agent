@@ -2,6 +2,7 @@ def build_plan_prompt(
     context,
     task_mode,
     test_intent,
+<<<<<<< HEAD
     existing_script,
     observed_elements=None,
     known_history=None
@@ -15,6 +16,10 @@ Earlier runs already tried on THIS page (most recent last, from memory):
 {known_history or "(no earlier runs recorded for this page)"}
 """
 
+=======
+    existing_script
+):
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     return f"""
 {context}
 
@@ -27,10 +32,13 @@ Testing intent:
 Existing test script:
 {existing_script}
 
+<<<<<<< HEAD
 Elements actually observed on the currently open page (label/type/ref):
 {observed_elements}
 {history_block}
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 Create an ordered plan of atomic browser actions.
 
 Execution model:
@@ -82,6 +90,7 @@ Scenario 2 - maintenance:
 - Preserve verification-related steps when they are part of the
   existing maintenance flow.
 
+<<<<<<< HEAD
 Scenario 3 - explore:
 - No requirement or script was given. You must decide what is worth testing
   entirely on your own, based only on the "Elements actually observed" list
@@ -121,10 +130,16 @@ Return valid JSON only.
 
 Expected format (task_mode "new_test" / "maintenance"):
 
+=======
+Return valid JSON only.
+
+Expected format:
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 [
     {{"goal": "One atomic browser action"}},
     {{"goal": "Another atomic browser action"}}
 ]
+<<<<<<< HEAD
 
 Expected format (task_mode "explore"):
 
@@ -142,4 +157,6 @@ Expected format (task_mode "explore"):
         "goal": "Submit the form with the required name field left empty"
     }}
 ]
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 """

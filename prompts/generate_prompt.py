@@ -8,16 +8,23 @@ def build_generate_prompt(
     executed_actions,
     app_path,
     expected_result,
+<<<<<<< HEAD
     actual_result,
     visited_pages=None
+=======
+    actual_result
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 ):
     """
     Build a compact prompt for final Playwright
     test-script generation.
     """
 
+<<<<<<< HEAD
     visited_pages = visited_pages or []
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     return f"""
 {context}
 
@@ -50,9 +57,12 @@ Task mode:
 Existing script:
 {existing_script if task_mode == "maintenance" else ""}
 
+<<<<<<< HEAD
 Pages visited (explore mode, in the order explored):
 {visited_pages}
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 Rules:
 
 - Return ONLY the final Python Playwright script.
@@ -104,6 +114,7 @@ For maintenance:
 - Preserve the original testing intent.
 - Return a complete runnable Python Playwright script.
 
+<<<<<<< HEAD
 For explore:
 
 - Each executed action carries "case_id" and "page_url".
@@ -118,6 +129,8 @@ For explore:
 - Do not invent an outcome that was not observed, and do not judge
   a case from an action that belongs to a different case_id.
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 Important:
 
 The generated script must describe only behavior established

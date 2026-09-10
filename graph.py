@@ -13,15 +13,23 @@ from nodes.execute import execute_action
 from nodes.reflect import reflect_replan
 from nodes.verify import verify_behavior
 from nodes.generate import generate_output
+<<<<<<< HEAD
 from nodes.pages import discover_pages, go_to_next_page
 
 from nodes.routing import (
     route_needs_plan,
+=======
+
+from nodes.routing import (
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     route_action_success,
     route_more_steps,
     route_retry,
     route_task_mode,
+<<<<<<< HEAD
     route_has_next_page,
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     route_repair
 )
 
@@ -152,6 +160,7 @@ def build_graph():
     )
 
     builder.add_node(
+<<<<<<< HEAD
         "observe",
         timed_node(
             "observe",
@@ -168,6 +177,8 @@ def build_graph():
     )
 
     builder.add_node(
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         "plan",
         timed_node(
             "plan",
@@ -176,6 +187,17 @@ def build_graph():
     )
 
     builder.add_node(
+<<<<<<< HEAD
+=======
+        "observe",
+        timed_node(
+            "observe",
+            observe_ui
+        )
+    )
+
+    builder.add_node(
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         "decide",
         timed_node(
             "decide",
@@ -232,6 +254,7 @@ def build_graph():
     )
 
     builder.add_node(
+<<<<<<< HEAD
         "next_page",
         timed_node(
             "next_page",
@@ -240,6 +263,8 @@ def build_graph():
     )
 
     builder.add_node(
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         "generate",
         timed_node(
             "generate",
@@ -257,6 +282,7 @@ def build_graph():
 
     # --------------------------------------------------
     # Normal Flow
+<<<<<<< HEAD
     #
     # KEY CHANGE: observe runs BEFORE plan.
     #
@@ -275,6 +301,8 @@ def build_graph():
     #    go observe → route_needs_plan → decide directly,
     #    instead of re-generating the entire plan every
     #    iteration.
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
 
     builder.add_edge(
@@ -287,6 +315,7 @@ def build_graph():
         "understand"
     )
 
+<<<<<<< HEAD
     # understand → observe (observe BEFORE plan)
     builder.add_edge(
         "understand",
@@ -318,6 +347,20 @@ def build_graph():
     # plan → decide
     builder.add_edge(
         "plan",
+=======
+    builder.add_edge(
+        "understand",
+        "plan"
+    )
+
+    builder.add_edge(
+        "plan",
+        "observe"
+    )
+
+    builder.add_edge(
+        "observe",
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         "decide"
     )
 
@@ -341,10 +384,13 @@ def build_graph():
 
     # --------------------------------------------------
     # More Steps?
+<<<<<<< HEAD
     #
     # "continue" goes back to observe (which now runs
     # BEFORE plan), then route_needs_plan skips plan
     # since a plan already exists.
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
 
     builder.add_conditional_edges(
@@ -358,10 +404,13 @@ def build_graph():
 
     # --------------------------------------------------
     # Task Mode?
+<<<<<<< HEAD
     #
     # new_test → generate
     # maintenance → verify
     # explore_next_page → next_page (crawl more pages)
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
 
     builder.add_conditional_edges(
@@ -369,6 +418,7 @@ def build_graph():
         route_task_mode,
         {
             "new_test": "generate",
+<<<<<<< HEAD
             "maintenance": "verify",
             "explore_next_page": "next_page"
         }
@@ -384,6 +434,9 @@ def build_graph():
         {
             "continue": "observe",
             "generate": "generate"
+=======
+            "maintenance": "verify"
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
         }
     )
 
@@ -446,6 +499,7 @@ def build_graph():
     # Save Graph Design as PNG
     # --------------------------------------------------
 
+<<<<<<< HEAD
     try:
         with open("plannergraph.png", "wb") as f:
             f.write(
@@ -461,10 +515,25 @@ def build_graph():
     return agent
 
 
+=======
+    with open("plannergraph.png", "wb") as f:
+        f.write(
+            agent.get_graph(
+                xray=True
+            ).draw_mermaid_png()
+        )
+
+    return agent
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 if __name__ == "__main__":
     print("Building LangGraph...")
 
     graph = build_graph()
 
     print("Graph built successfully.")
+<<<<<<< HEAD
     print("Graph image saved as plannergraph.png")
+=======
+    print("Graph image saved as plannergraph.png")
+    
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2

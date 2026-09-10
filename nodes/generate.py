@@ -1,6 +1,9 @@
 import json
+<<<<<<< HEAD
 import re
 import subprocess
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 from state import AgentState
 
@@ -9,12 +12,17 @@ from tools.browser_tools import (
     screenshot
 )
 
+<<<<<<< HEAD
 from model import invoke_llm, invoke_vlm
+=======
+from model import invoke_vlm
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 from utils.json_utils import clean_json_response
 
 from metrics.tracker import metrics_logger
 
+<<<<<<< HEAD
 from memory import memory_store
 
 from skills.skill_loader import load_context_for_node
@@ -904,6 +912,8 @@ Return JSON only:
 
     return commands
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
 
 def _validate_final_result(
     state: AgentState
@@ -1234,12 +1244,15 @@ def generate_output(state: AgentState):
 
     The generated output remains based on actual
     Agent Browser commands executed during the test.
+<<<<<<< HEAD
 
     Scenario 1 and Scenario 3 also append dynamically
     generated Agent Browser eval validation containing
     runtime JavaScript if/else logic.
 
     Scenario 2 remains unchanged.
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     """
 
     # --------------------------------------------------
@@ -1261,6 +1274,7 @@ def generate_output(state: AgentState):
     )
 
     # --------------------------------------------------
+<<<<<<< HEAD
     # 2.1 Explore mode: per-case report with VLM validation
     #
     # In explore mode, each case has already been VLM-validated
@@ -1569,6 +1583,8 @@ def generate_output(state: AgentState):
         }
 
     # --------------------------------------------------
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # 3. Final validation
     #
     # Scenario 1:
@@ -1642,6 +1658,7 @@ def generate_output(state: AgentState):
                 screenshot_command
             )
 
+<<<<<<< HEAD
         # --------------------------------------------------
         # Add the generated Agent Browser runtime
         # if/else validation to the final script.
@@ -1659,6 +1676,8 @@ def generate_output(state: AgentState):
                 runtime_validation_command
             )
 
+=======
+>>>>>>> 7de6a10e48b0b5a56661fe83a54f9e299779b3d2
     # --------------------------------------------------
     # 4. Build final CLI output
     # --------------------------------------------------
