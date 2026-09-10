@@ -1,13 +1,15 @@
 clone the repo:
-
+---------------------------
 cd Desktop
 git clone https://github.com/Omarr127/Software_Tesitng_Agent.git
 cd Software_Tesitng_Agent
+------------------------------
 
 
 - For API key:
+ ------------
 set GEMINI_API_KEY=YOUR_API_KEY
-
+------------
 
 -Scenarios test:
 scenario 1 input:
