@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabFinder</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#172033}
+header{background:#172033;color:white;padding:26px 7%}
+header h1{margin:0 0 6px} header p{margin:0;opacity:.8}
+main{width:86%;max-width:1250px;margin:28px auto}
+.search-panel{background:white;padding:22px;border-radius:14px;box-shadow:0 5px 20px rgba(0,0,0,.07)}
+form{display:flex;gap:10px;flex-wrap:wrap}
+input,select,button{padding:13px 15px;border-radius:8px;border:1px solid #ccd3df;font-size:15px}
+input{flex:1;min-width:260px}
+button{background:#2563eb;color:white;border:0;cursor:pointer;font-weight:bold}
+.layout{display:grid;grid-template-columns:1fr 310px;gap:22px;margin-top:22px}
+.results{display:grid;gap:14px}
+.card,aside{background:white;border-radius:12px;padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.card h3{margin:8px 0}.category{display:inline-block;background:#e8efff;color:#1d4ed8;padding:4px 8px;border-radius:20px;font-size:12px;font-weight:bold}
+.price{font-weight:bold;margin-top:12px}
+.trend{border:1px solid #eee;border-radius:9px;padding:12px;margin:10px 0;background:#fffaf0}
+.badge{font-size:10px;font-weight:bold;color:#b45309;margin-bottom:4px}
+.empty{background:white;padding:30px;border-radius:12px;text-align:center}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>LabFinder</h1>
+<p>Laboratory equipment and research instrument search</p>
+</header>
+<main>
+<section class="search-panel">
+<form method="get" action="/">
+<input id="search" name="q" value="{{ query }}"
+       placeholder="Search laboratory equipment..."
+       aria-label="Search laboratory equipment">
+<select name="category" aria-label="Filter by category">
+<option value="">All categories</option>
+{% for category_name in categories %}
+<option value="{{ category_name }}" {% if category == category_name %}selected{% endif %}>
+{{ category_name }}
+</option>
+{% endfor %}
+</select>
+<button id="search-button" type="submit">Search</button>
+</form>
+</section>
+<div class="layout">
+<section>
+<h2>Laboratory Results</h2>
+<div class="results" id="results">
+{% for item in results %}
+<article class="card lab-result">
+<span class="category">{{ item.category }}</span>
+<h3>{{ item.name }}</h3>
+<p>{{ item.description }}</p>
+<div class="price">${{ item.price }}</div>
+</article>
+{% else %}
+<div class="empty">
+<h3>No laboratory equipment found</h3>
+<p>Try another laboratory-related search term.</p>
+</div>
+{% endfor %}
+</div>
+</section>
+<aside>
+<h2>🔥 Trending Now</h2>
+<p>Popular items people are viewing today.</p>
+{% for item_name, badge in trending %}
+<div class="trend">
+<div class="badge">{{ badge }}</div>
+<strong>{{ item_name }}</strong>
+</div>
+{% endfor %}
+</aside>
+</div>
+</main>
+</body>
+</html>
