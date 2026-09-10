@@ -23,6 +23,7 @@ cd Software_Tesitng_Agent
 
 set GEMINI_API_KEY=YOUR_API_KEY
 
+cd /app_path
 
 
 py main.py --requirement "Test the search functionality on the application by searching for centrifuge and verify that the correct search results are displayed." --app_path "http://127.0.0.1:5050"
