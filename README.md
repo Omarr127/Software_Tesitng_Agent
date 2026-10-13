@@ -4,7 +4,7 @@
 This is clearer because the execution order is now:
 
 1. Clone agent repository  
-2. Set API key  
+2. Set API key for Gemini for testing or install Quen VLM 2.5-7B parameter 
 3. Start the application under test  
 4. Verify port 5050 is running  
 5. Run Scenario 1 / 2 / 3 from another CMD window.
